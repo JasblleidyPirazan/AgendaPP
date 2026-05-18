@@ -14,7 +14,7 @@
 - **Filtro inicial**: `Incluir en analisis == "Si"`.
 - **Atribución temática por defecto**: solo `Rol == Proponente` (autoría). Cambiable con `--rol`.
 - **Variable temática por defecto**: `Tematica` OPPAM. Alternativas: `Sector` (agregación más alta) o `Tema segun Concejo` (texto libre, no estandarizado — solo para auditoría).
-- **Umbral mínimo**: concejales con < 3 instrumentos atribuidos se reportan pero **se excluyen** del cálculo de CV y Jaccard intra-partido (su H sí se reporta, marcado).
+- **Umbral mínimo**: por defecto **N = 1** (todos los concejales con al menos un instrumento entran a CV y Jaccard). Un concejal con un único instrumento tiene `H = 0` por construcción — eso **es** información (hiperespecialización), no ruido. El parámetro se puede subir con `--min-instrumentos` si se quiere ser conservador (p. ej., 3 para sólo concejales con volumen suficiente para que su `H` sea estadísticamente más estable).
 
 ## Índices
 
@@ -90,7 +90,7 @@ Las correlaciones inter-partido se reportan como evidencia adicional: bajo H1 es
 
 4. **Universo de temas.** Para Pearson inter-partido **sí** se alinea al universo global (rellenando con 0 los temas no tocados), porque la comparación requiere vectores de la misma dimensión.
 
-5. **Concejales con baja actividad.** El umbral de 3 instrumentos es heurístico. Para municipios pequeños puede ser demasiado restrictivo; ajustarlo con `--min-instrumentos` y reportar siempre cuántos se excluyeron.
+5. **Concejales con baja actividad.** El default `N=1` los incluye. Si se elige subir el umbral (p. ej., 3), reportar siempre cuántos se excluyeron — el filtro descarta justamente a los más especializados, lo que puede sesgar el CV intra-partido hacia menores valores (al excluir los outliers de `H=0`).
 
 6. **ADMINISTRACION como "partido".** Las filas con `Partido / Movimiento = ADMINISTRACION` representan iniciativas del ejecutivo, no del concejo. Suelen tener `ID_Concejal = ADMINISTRACION`. En análisis comparativos entre partidos políticos conviene **filtrarlas** antes de calcular CV/J/Pearson; el pipeline actual las incluye y queda a discreción del notebook excluirlas.
 

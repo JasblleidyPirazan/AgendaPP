@@ -9,7 +9,7 @@ import pandas as pd
 
 ROLES_DEFAULT = ("Proponente",)
 COL_TEMA_DEFAULT = "Tematica"
-MIN_INSTRUMENTOS_DEFAULT = 3
+MIN_INSTRUMENTOS_DEFAULT = 1
 
 
 def filtrar_instrumentos(

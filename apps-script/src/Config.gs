@@ -11,7 +11,8 @@
  *   En produccion guardarlo en PropertiesService (scriptProperties) en vez de aqui.
  */
 const SHEETS_FUENTE = [
-  { municipio: 'GUARNE', dane: '05318', fileId: '1CGfkYxMWpIjjsIzKiz5lPOAxz4ql0TGIT3CJTH4x8Dw' },
+  { municipio: 'GUARNE',   dane: '05318', fileId: '1CGfkYxMWpIjjsIzKiz5lPOAxz4ql0TGIT3CJTH4x8Dw' },
+  { municipio: 'VALDIVIA', dane: '05854', fileId: '1sbU9BuvPRusMBtRzX8WEHjWnkzkTISar8X-on22RJh8' },
 ];
 
 const HOJAS = Object.freeze({

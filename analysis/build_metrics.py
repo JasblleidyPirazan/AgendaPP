@@ -206,7 +206,9 @@ def main():
     p.add_argument("--xlsx", help="Ruta a un Excel local (fallback)")
     p.add_argument("--rol", default="Proponente", help="Rol(es) separados por coma")
     p.add_argument("--tema", default="Tematica", choices=["Sector", "Tematica", "Tema segun Concejo"])
-    p.add_argument("--min-instrumentos", type=int, default=3)
+    p.add_argument("--min-instrumentos", type=int, default=1,
+                   help="Concejales con < N instrumentos como Proponente se excluyen de CV/Jaccard. "
+                        "Default 1 = incluir a todos (H=0 representa hiperespecializacion).")
     p.add_argument("--out", default="exports/metrics.json")
     args = p.parse_args()
 
