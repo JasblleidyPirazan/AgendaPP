@@ -83,6 +83,7 @@ def construir_metrics(df: pd.DataFrame, nombres: dict, args) -> dict:
     if "Incluir en analisis" in df_filt.columns:
         df_filt = df_filt[df_filt["Incluir en analisis"].astype(str).str.strip().str.lower().eq("si")]
     df_filt = df_filt.dropna(subset=[col_tema])
+    df_filt = df_filt[df_filt[col_tema].astype(str).str.strip() != ""]
     universo_temas = sorted(df_filt[col_tema].astype(str).str.strip().unique().tolist())
     universo_sectores = sorted(
         df_filt["Sector"].dropna().astype(str).str.strip().replace("", pd.NA).dropna().unique().tolist()

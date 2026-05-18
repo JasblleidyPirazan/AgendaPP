@@ -24,6 +24,41 @@ header {
   border-bottom: 1px solid var(--border);
 }
 
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.acciones {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.acciones button {
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--accent);
+  background: white;
+  color: var(--accent);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.acciones button:hover { background: var(--accent-soft); }
+.acciones button:disabled { opacity: 0.5; cursor: wait; }
+
+.acciones .estado {
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-style: italic;
+}
+
 header h1 {
   margin: 0;
   font-size: 1.5rem;

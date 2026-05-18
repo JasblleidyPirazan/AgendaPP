@@ -45,6 +45,10 @@ def matriz_concejal_tema(
     las mismas columnas que la del universo y los perfiles agregados sean comparables.
     """
     filt = filtrar_instrumentos(df, roles=roles, solo_incluidos=solo_incluidos)
+    # Excluir filas con tema vacio (data quality: se reportan en notebook 01,
+    # pero NO deben contribuir al conteo ni a la matriz de indices).
+    filt = filt.dropna(subset=[col_tema])
+    filt = filt[filt[col_tema].astype(str).str.strip() != ""]
     if filt.empty:
         cols = list(universo_temas) if universo_temas is not None else []
         return pd.DataFrame(columns=cols, dtype=float)

@@ -7,6 +7,7 @@ import { renderCV } from "/src/views/cv.js";
 import { renderJaccard } from "/src/views/jaccard.js";
 import { renderCorr } from "/src/views/correlaciones.js";
 import { renderAuditoria } from "/src/views/auditoria.js";
+import { construirMetrics } from "/src/metrics.js";
 
 const VIEWS = {
   resumen: renderResumen,
@@ -82,16 +83,67 @@ async function main() {
   const ctx = await loadAll();
   if (!ctx) return;
 
-  if (ctx.metrics.generadoEn) {
-    document.getElementById("generado-en").textContent =
-      `Métricas generadas: ${new Date(ctx.metrics.generadoEn).toLocaleString("es-CO")}`;
-  }
+  refrescarTimestamp(ctx);
 
   document.querySelectorAll("nav button").forEach((b) => {
     b.addEventListener("click", () => activarVista(b.dataset.view, ctx));
   });
 
+  const btnRecalc = document.getElementById("btn-recalcular");
+  const btnDescargar = document.getElementById("btn-descargar");
+  const estado = document.getElementById("estado-recalculo");
+
+  if (!ctx.config.appsScriptUrl) {
+    btnRecalc.disabled = true;
+    btnRecalc.title = "Configura appsScriptUrl en /config.json para habilitar recálculo en vivo.";
+  }
+
+  btnRecalc.addEventListener("click", async () => {
+    btnRecalc.disabled = true;
+    estado.textContent = "Obteniendo datos del endpoint…";
+    try {
+      const raw = await fetchJSON(`${ctx.config.appsScriptUrl}?recurso=todo&nocache=1`);
+      ctx.raw = raw;
+      estado.textContent = "Calculando índices…";
+      // pequeña pausa para que pinte el "Calculando..."
+      await new Promise((r) => setTimeout(r, 16));
+      const nuevasMetrics = construirMetrics(raw.instrumentos, raw.concejales, {});
+      ctx.metrics = nuevasMetrics;
+      refrescarTimestamp(ctx);
+      const vistaActiva = document.querySelector("nav button.active")?.dataset.view || "resumen";
+      activarVista(vistaActiva, ctx);
+      estado.textContent = `✓ Recalculado ${new Date(nuevasMetrics.generadoEn).toLocaleTimeString("es-CO")}`;
+      setTimeout(() => { estado.textContent = ""; }, 8000);
+    } catch (err) {
+      estado.textContent = `✗ Error: ${err.message}`;
+      console.error(err);
+    } finally {
+      btnRecalc.disabled = false;
+    }
+  });
+
+  btnDescargar.addEventListener("click", () => {
+    const ts = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+    const filename = `agendapp_metrics_${ts}.json`;
+    const blob = new Blob([JSON.stringify(ctx.metrics, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+    estado.textContent = `↓ ${filename}`;
+    setTimeout(() => { estado.textContent = ""; }, 5000);
+  });
+
   activarVista("resumen", ctx);
+}
+
+function refrescarTimestamp(ctx) {
+  const el = document.getElementById("generado-en");
+  if (!ctx.metrics.generadoEn) return;
+  const origen = ctx.metrics._origen === "navegador" ? " (recalculado en navegador)" : "";
+  el.textContent = `Métricas generadas: ${new Date(ctx.metrics.generadoEn).toLocaleString("es-CO")}${origen}`;
 }
 
 main();

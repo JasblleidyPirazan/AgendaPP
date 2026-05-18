@@ -1,5 +1,5 @@
 {
-  "generadoEn": "2026-05-18T02:51:58+00:00",
+  "generadoEn": "2026-05-18T03:08:11+00:00",
   "parametros": {
     "rol": [
       "Proponente"
@@ -8,7 +8,6 @@
     "min_instrumentos": 1
   },
   "universo_temas": [
-    "",
     "Ambiente",
     "Biodiversidad y Fauna",
     "Desarrollo Rural",
@@ -43,7 +42,6 @@
     "Turismo"
   ],
   "universo_sectores": [
-    "Ambiente",
     "Ambiente y desarrollo sostenible",
     "Cultura",
     "Deporte y recreacion",
@@ -56,25 +54,11 @@
     "Seguridad, Paz y No Violencia",
     "Social"
   ],
-  "n_instrumentos_unicos_incluidos": 100,
+  "n_instrumentos_unicos_incluidos": 90,
   "n_instrumentos_unicos_total": 452,
   "concejales": [
     {
       "id": "05318-003",
-      "nombre": "Carlos Adrian Ospina Hurtado",
-      "partido": "PARTIDO CONSERVADOR",
-      "n_instrumentos": 1,
-      "shannon_norm": 0.0
-    },
-    {
-      "id": "05318-024",
-      "nombre": "Ricardo Nicolas Restrepo Sanchez",
-      "partido": "PARTIDO CONSERVADOR",
-      "n_instrumentos": 1,
-      "shannon_norm": 0.0
-    },
-    {
-      "id": "05318-025",
       "nombre": "Carlos Adrian Ospina Hurtado",
       "partido": "PARTIDO CONSERVADOR",
       "n_instrumentos": 1,
@@ -146,7 +130,7 @@
     {
       "id": "05854-003",
       "nombre": "CARLOS ALBERTO CARDENAS BARON",
-      "partido": "PARTIDO CONSERVADOR COLOMBIANO",
+      "partido": "PARTIDO CONSERVADOR",
       "n_instrumentos": 2,
       "shannon_norm": 0.0
     },
@@ -160,7 +144,7 @@
     {
       "id": "05854-009",
       "nombre": "JOSE ELIECER MONSALVE BUSTAMANTE",
-      "partido": "PARTIDO LIBERAL COLOMBIANO",
+      "partido": "PARTIDO LIBERAL",
       "n_instrumentos": 1,
       "shannon_norm": 0.0
     },
@@ -168,8 +152,8 @@
       "id": "ADMINISTRACION",
       "nombre": "",
       "partido": "ADMINISTRACION",
-      "n_instrumentos": 82,
-      "shannon_norm": 0.9314
+      "n_instrumentos": 74,
+      "shannon_norm": 0.9379
     }
   ],
   "partidos": [
@@ -180,37 +164,36 @@
       "cv_shannon": null,
       "jaccard_intra": null,
       "perfil_tematico": {
-        "": 0.0976,
-        "Ambiente": 0.0122,
-        "Biodiversidad y Fauna": 0.0122,
-        "Desarrollo Rural": 0.0488,
-        "Discapacidad": 0.0244,
-        "Discapacidad social": 0.0122,
-        "Economia Circular y gestion de residuos": 0.0244,
-        "Educacion Superior": 0.0244,
-        "Etnias": 0.0122,
-        "Festivales y Eventos": 0.0122,
-        "Fomento, fortalecimiento y estimulos": 0.0366,
-        "Formas de habitar: vivienda, moradores e inquilinatos": 0.0732,
-        "Gestion de Riesgos": 0.0854,
-        "Infancia y adolescencia": 0.0244,
-        "Juventud": 0.0244,
-        "Mujeres": 0.0488,
-        "Participacion": 0.0122,
-        "Participacion ciudadana": 0.0122,
-        "Paz y No-violencia": 0.0122,
-        "Personas mayores": 0.0488,
-        "Planes Educativos y curriculo": 0.0122,
-        "Programas y proyectos asociados al sistema educativo": 0.0366,
-        "Promocion del deporte y recreacion": 0.0366,
-        "Promocion, prevencion y atencion": 0.0488,
-        "Promoción del deporte y recreacion": 0.0244,
-        "Promoción, prevención y atención": 0.0122,
-        "Salud mental y adicciones": 0.0732,
-        "Seguridad alimentaria": 0.0244,
-        "Seguridad y convivencia": 0.0122,
-        "Servicios publicos domiciliarios": 0.0488,
-        "Turismo": 0.0122
+        "Ambiente": 0.0135,
+        "Biodiversidad y Fauna": 0.0135,
+        "Desarrollo Rural": 0.0541,
+        "Discapacidad": 0.027,
+        "Discapacidad social": 0.0135,
+        "Economia Circular y gestion de residuos": 0.027,
+        "Educacion Superior": 0.027,
+        "Etnias": 0.0135,
+        "Festivales y Eventos": 0.0135,
+        "Fomento, fortalecimiento y estimulos": 0.0405,
+        "Formas de habitar: vivienda, moradores e inquilinatos": 0.0811,
+        "Gestion de Riesgos": 0.0946,
+        "Infancia y adolescencia": 0.027,
+        "Juventud": 0.027,
+        "Mujeres": 0.0541,
+        "Participacion": 0.0135,
+        "Participacion ciudadana": 0.0135,
+        "Paz y No-violencia": 0.0135,
+        "Personas mayores": 0.0541,
+        "Planes Educativos y curriculo": 0.0135,
+        "Programas y proyectos asociados al sistema educativo": 0.0405,
+        "Promocion del deporte y recreacion": 0.0405,
+        "Promocion, prevencion y atencion": 0.0541,
+        "Promoción del deporte y recreacion": 0.027,
+        "Promoción, prevención y atención": 0.0135,
+        "Salud mental y adicciones": 0.0811,
+        "Seguridad alimentaria": 0.027,
+        "Seguridad y convivencia": 0.0135,
+        "Servicios publicos domiciliarios": 0.0541,
+        "Turismo": 0.0135
       }
     },
     {
@@ -257,25 +240,14 @@
     },
     {
       "nombre": "PARTIDO CONSERVADOR",
-      "n_concejales": 4,
-      "n_concejales_aptos": 4,
-      "cv_shannon": 2.0,
+      "n_concejales": 3,
+      "n_concejales_aptos": 3,
+      "cv_shannon": 1.7321,
       "jaccard_intra": 0.2222,
       "perfil_tematico": {
-        "": 0.3333,
         "Ambiente": 0.1667,
         "Biodiversidad y Fauna": 0.3333,
-        "Juventud": 0.1667
-      }
-    },
-    {
-      "nombre": "PARTIDO CONSERVADOR COLOMBIANO",
-      "n_concejales": 1,
-      "n_concejales_aptos": 1,
-      "cv_shannon": null,
-      "jaccard_intra": null,
-      "perfil_tematico": {
-        "Juventud": 1.0
+        "Juventud": 0.5
       }
     },
     {
@@ -290,22 +262,13 @@
     },
     {
       "nombre": "PARTIDO LIBERAL",
-      "n_concejales": 1,
-      "n_concejales_aptos": 1,
+      "n_concejales": 2,
+      "n_concejales_aptos": 2,
       "cv_shannon": null,
-      "jaccard_intra": null,
+      "jaccard_intra": 0.0,
       "perfil_tematico": {
-        "Mujeres": 1.0
-      }
-    },
-    {
-      "nombre": "PARTIDO LIBERAL COLOMBIANO",
-      "n_concejales": 1,
-      "n_concejales_aptos": 1,
-      "cv_shannon": null,
-      "jaccard_intra": null,
-      "perfil_tematico": {
-        "Educacion ambiental": 1.0
+        "Educacion ambiental": 0.5,
+        "Mujeres": 0.5
       }
     },
     {
@@ -325,57 +288,47 @@
     {
       "a": "ADMINISTRACION",
       "b": "AICO",
-      "pearson": 0.1359
+      "pearson": 0.1742
     },
     {
       "a": "ADMINISTRACION",
       "b": "ALIANZA VERDE",
-      "pearson": -0.1312
+      "pearson": -0.1194
     },
     {
       "a": "ADMINISTRACION",
       "b": "PARTIDO ASI",
-      "pearson": 0.1359
+      "pearson": 0.1742
     },
     {
       "a": "ADMINISTRACION",
       "b": "PARTIDO CENTRO DEMOCRATICO",
-      "pearson": 0.1359
+      "pearson": 0.1742
     },
     {
       "a": "ADMINISTRACION",
       "b": "PARTIDO CONSERVADOR",
-      "pearson": 0.1802
-    },
-    {
-      "a": "ADMINISTRACION",
-      "b": "PARTIDO CONSERVADOR COLOMBIANO",
-      "pearson": -0.0435
+      "pearson": -0.138
     },
     {
       "a": "ADMINISTRACION",
       "b": "PARTIDO DE LA U",
-      "pearson": -0.1332
+      "pearson": -0.1355
     },
     {
       "a": "ADMINISTRACION",
       "b": "PARTIDO LIBERAL",
-      "pearson": 0.1359
-    },
-    {
-      "a": "ADMINISTRACION",
-      "b": "PARTIDO LIBERAL COLOMBIANO",
-      "pearson": -0.2228
+      "pearson": -0.0464
     },
     {
       "a": "ADMINISTRACION",
       "b": "PASION POR GUARNE",
-      "pearson": 0.0435
+      "pearson": 0.0775
     },
     {
       "a": "AICO",
       "b": "ALIANZA VERDE",
-      "pearson": -0.0559
+      "pearson": -0.0578
     },
     {
       "a": "AICO",
@@ -390,27 +343,17 @@
     {
       "a": "AICO",
       "b": "PARTIDO CONSERVADOR",
-      "pearson": -0.0619
-    },
-    {
-      "a": "AICO",
-      "b": "PARTIDO CONSERVADOR COLOMBIANO",
-      "pearson": -0.0312
+      "pearson": -0.0531
     },
     {
       "a": "AICO",
       "b": "PARTIDO DE LA U",
-      "pearson": -0.0313
+      "pearson": -0.0323
     },
     {
       "a": "AICO",
       "b": "PARTIDO LIBERAL",
-      "pearson": -0.0312
-    },
-    {
-      "a": "AICO",
-      "b": "PARTIDO LIBERAL COLOMBIANO",
-      "pearson": -0.0313
+      "pearson": -0.0464
     },
     {
       "a": "AICO",
@@ -420,42 +363,32 @@
     {
       "a": "ALIANZA VERDE",
       "b": "PARTIDO ASI",
-      "pearson": -0.0559
+      "pearson": -0.0578
     },
     {
       "a": "ALIANZA VERDE",
       "b": "PARTIDO CENTRO DEMOCRATICO",
-      "pearson": -0.0559
+      "pearson": -0.0578
     },
     {
       "a": "ALIANZA VERDE",
       "b": "PARTIDO CONSERVADOR",
-      "pearson": 0.0922
-    },
-    {
-      "a": "ALIANZA VERDE",
-      "b": "PARTIDO CONSERVADOR COLOMBIANO",
-      "pearson": -0.0559
+      "pearson": 0.0739
     },
     {
       "a": "ALIANZA VERDE",
       "b": "PARTIDO DE LA U",
-      "pearson": -0.0559
+      "pearson": -0.0578
     },
     {
       "a": "ALIANZA VERDE",
       "b": "PARTIDO LIBERAL",
-      "pearson": -0.0559
-    },
-    {
-      "a": "ALIANZA VERDE",
-      "b": "PARTIDO LIBERAL COLOMBIANO",
-      "pearson": -0.0559
+      "pearson": -0.083
     },
     {
       "a": "ALIANZA VERDE",
       "b": "PASION POR GUARNE",
-      "pearson": -0.086
+      "pearson": -0.0889
     },
     {
       "a": "PARTIDO ASI",
@@ -465,27 +398,17 @@
     {
       "a": "PARTIDO ASI",
       "b": "PARTIDO CONSERVADOR",
-      "pearson": -0.0619
-    },
-    {
-      "a": "PARTIDO ASI",
-      "b": "PARTIDO CONSERVADOR COLOMBIANO",
-      "pearson": -0.0312
+      "pearson": -0.0531
     },
     {
       "a": "PARTIDO ASI",
       "b": "PARTIDO DE LA U",
-      "pearson": -0.0313
+      "pearson": -0.0323
     },
     {
       "a": "PARTIDO ASI",
       "b": "PARTIDO LIBERAL",
-      "pearson": -0.0312
-    },
-    {
-      "a": "PARTIDO ASI",
-      "b": "PARTIDO LIBERAL COLOMBIANO",
-      "pearson": -0.0313
+      "pearson": -0.0464
     },
     {
       "a": "PARTIDO ASI",
@@ -495,27 +418,17 @@
     {
       "a": "PARTIDO CENTRO DEMOCRATICO",
       "b": "PARTIDO CONSERVADOR",
-      "pearson": -0.0619
-    },
-    {
-      "a": "PARTIDO CENTRO DEMOCRATICO",
-      "b": "PARTIDO CONSERVADOR COLOMBIANO",
-      "pearson": -0.0312
+      "pearson": -0.0531
     },
     {
       "a": "PARTIDO CENTRO DEMOCRATICO",
       "b": "PARTIDO DE LA U",
-      "pearson": -0.0313
+      "pearson": -0.0323
     },
     {
       "a": "PARTIDO CENTRO DEMOCRATICO",
       "b": "PARTIDO LIBERAL",
-      "pearson": -0.0312
-    },
-    {
-      "a": "PARTIDO CENTRO DEMOCRATICO",
-      "b": "PARTIDO LIBERAL COLOMBIANO",
-      "pearson": -0.0313
+      "pearson": -0.0464
     },
     {
       "a": "PARTIDO CENTRO DEMOCRATICO",
@@ -524,78 +437,33 @@
     },
     {
       "a": "PARTIDO CONSERVADOR",
-      "b": "PARTIDO CONSERVADOR COLOMBIANO",
-      "pearson": 0.2784
-    },
-    {
-      "a": "PARTIDO CONSERVADOR",
       "b": "PARTIDO DE LA U",
-      "pearson": -0.0619
+      "pearson": -0.0531
     },
     {
       "a": "PARTIDO CONSERVADOR",
       "b": "PARTIDO LIBERAL",
-      "pearson": -0.0619
-    },
-    {
-      "a": "PARTIDO CONSERVADOR",
-      "b": "PARTIDO LIBERAL COLOMBIANO",
-      "pearson": -0.0619
+      "pearson": -0.0763
     },
     {
       "a": "PARTIDO CONSERVADOR",
       "b": "PASION POR GUARNE",
-      "pearson": -0.0952
-    },
-    {
-      "a": "PARTIDO CONSERVADOR COLOMBIANO",
-      "b": "PARTIDO DE LA U",
-      "pearson": -0.0312
-    },
-    {
-      "a": "PARTIDO CONSERVADOR COLOMBIANO",
-      "b": "PARTIDO LIBERAL",
-      "pearson": -0.0313
-    },
-    {
-      "a": "PARTIDO CONSERVADOR COLOMBIANO",
-      "b": "PARTIDO LIBERAL COLOMBIANO",
-      "pearson": -0.0312
-    },
-    {
-      "a": "PARTIDO CONSERVADOR COLOMBIANO",
-      "b": "PASION POR GUARNE",
-      "pearson": -0.0481
+      "pearson": -0.0817
     },
     {
       "a": "PARTIDO DE LA U",
       "b": "PARTIDO LIBERAL",
-      "pearson": -0.0312
-    },
-    {
-      "a": "PARTIDO DE LA U",
-      "b": "PARTIDO LIBERAL COLOMBIANO",
-      "pearson": -0.0313
+      "pearson": -0.0464
     },
     {
       "a": "PARTIDO DE LA U",
       "b": "PASION POR GUARNE",
-      "pearson": -0.0481
-    },
-    {
-      "a": "PARTIDO LIBERAL",
-      "b": "PARTIDO LIBERAL COLOMBIANO",
-      "pearson": -0.0312
+      "pearson": -0.0497
     },
     {
       "a": "PARTIDO LIBERAL",
       "b": "PASION POR GUARNE",
-      "pearson": -0.0481
-    },
-    {
-      "a": "PARTIDO LIBERAL COLOMBIANO",
-      "b": "PASION POR GUARNE",
-      "pearson": -0.0481
+      "pearson": -0.0714
     }
   ],
   "excluidos_min_instrumentos": [],
@@ -604,7 +472,7 @@
     "umbral_jaccard": 0.5,
     "partidos_apoyan_H1": 0,
     "partidos_apoyan_H2": 3,
-    "partidos_ambiguos": 8,
+    "partidos_ambiguos": 6,
     "interpretacion": "H2 apoyada"
   }
 }
