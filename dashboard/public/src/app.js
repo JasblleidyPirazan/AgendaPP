@@ -1,6 +1,7 @@
 // Punto de entrada: carga config + metrics.json, renderiza vistas, gestiona navegacion.
 import { renderResumen } from "/src/views/resumen.js";
 import { renderInstrumentos } from "/src/views/instrumentos.js";
+import { renderPartidos } from "/src/views/partidos.js";
 import { renderShannon } from "/src/views/shannon.js";
 import { renderCV } from "/src/views/cv.js";
 import { renderJaccard } from "/src/views/jaccard.js";
@@ -10,6 +11,7 @@ import { renderAuditoria } from "/src/views/auditoria.js";
 const VIEWS = {
   resumen: renderResumen,
   instrumentos: renderInstrumentos,
+  partidos: renderPartidos,
   shannon: renderShannon,
   cv: renderCV,
   jaccard: renderJaccard,
