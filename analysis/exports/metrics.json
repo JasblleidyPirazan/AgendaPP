@@ -1,5 +1,5 @@
 {
-  "generadoEn": "2026-05-18T01:23:21+00:00",
+  "generadoEn": "2026-05-18T01:53:55+00:00",
   "parametros": {
     "rol": [
       "Proponente"
@@ -38,81 +38,107 @@
     "Seguridad y convivencia",
     "Servicios publicos domiciliarios"
   ],
+  "universo_sectores": [
+    "Ambiente y desarrollo sostenible",
+    "Cultura",
+    "Deporte y recreacion",
+    "Economia",
+    "Educacion",
+    "Gestion de Riesgos",
+    "Habitat",
+    "Participacion",
+    "Salud",
+    "Seguridad, Paz y No Violencia",
+    "Social"
+  ],
   "concejales": [
     {
       "id": "05318-003",
+      "nombre": "Carlos Adrian Ospina Hurtado",
       "partido": "PARTIDO CONSERVADOR",
       "n_instrumentos": 1,
       "shannon_norm": 0.0
     },
     {
       "id": "05318-024",
+      "nombre": "Ricardo Nicolas Restrepo Sanchez",
       "partido": "PARTIDO CONSERVADOR",
       "n_instrumentos": 1,
       "shannon_norm": 0.0
     },
     {
       "id": "05318-025",
+      "nombre": "Carlos Adrian Ospina Hurtado",
       "partido": "PARTIDO CONSERVADOR",
       "n_instrumentos": 1,
       "shannon_norm": 0.0
     },
     {
       "id": "05318-026",
+      "nombre": "Jonathan Gómez Giraldo",
       "partido": "PARTIDO CONSERVADOR",
       "n_instrumentos": 3,
       "shannon_norm": 1.0
     },
     {
       "id": "05318-035",
+      "nombre": "Nidia Hincapie Hincapie",
       "partido": "PARTIDO LIBERAL",
       "n_instrumentos": 1,
       "shannon_norm": 0.0
     },
     {
       "id": "05318-038",
+      "nombre": "Carlos Andres Gallego Naranjo",
       "partido": "PASION POR GUARNE",
       "n_instrumentos": 1,
       "shannon_norm": 0.0
     },
     {
       "id": "05318-040",
+      "nombre": "José David Llano Gallego",
       "partido": "PASION POR GUARNE",
       "n_instrumentos": 4,
       "shannon_norm": 0.9464
     },
     {
       "id": "05318-041",
+      "nombre": "Jefferson Arley Iral Cardona",
       "partido": "PARTIDO CENTRO DEMOCRATICO",
       "n_instrumentos": 1,
       "shannon_norm": 0.0
     },
     {
       "id": "05318-043",
+      "nombre": "Fredy Abelardo Rodriguez Osorio",
       "partido": "PARTIDO DE LA U",
       "n_instrumentos": 1,
       "shannon_norm": 0.0
     },
     {
       "id": "05318-044",
+      "nombre": "Javier Alfredo Gallego Londoño",
       "partido": "AICO",
       "n_instrumentos": 1,
       "shannon_norm": 0.0
     },
     {
       "id": "05318-045",
+      "nombre": "Julián Ochoa Rivera",
       "partido": "PARTIDO ASI",
       "n_instrumentos": 1,
       "shannon_norm": 0.0
     },
     {
       "id": "05318-046",
+      "nombre": "Jhon Anderson Salazar Sánchez",
       "partido": "ALIANZA VERDE",
       "n_instrumentos": 2,
       "shannon_norm": 1.0
     },
     {
       "id": "ADMINISTRACION",
+      "nombre": "",
       "partido": "ADMINISTRACION",
       "n_instrumentos": 71,
       "shannon_norm": 0.9292

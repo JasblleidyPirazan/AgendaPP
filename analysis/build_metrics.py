@@ -42,14 +42,16 @@ UMBRAL_CV = 0.3
 UMBRAL_JACCARD = 0.5
 
 
-def cargar(args) -> pd.DataFrame:
-    """Devuelve el DataFrame de instrumentos consolidado (con columna Partido / Movimiento normalizada)."""
+def cargar(args) -> tuple[pd.DataFrame, dict]:
+    """Devuelve (df_instrumentos, dict mapeo ID_Concejal -> Nombre completo)."""
     if args.url:
         data = fetch_endpoint(args.url, recurso="todo")
         df = pd.DataFrame(data["instrumentos"])
+        nombres = {c["ID_Concejal"]: c.get("Nombre completo", "") for c in data.get("concejales", []) if c.get("ID_Concejal")}
     elif args.xlsx:
         d = load_xlsx_municipio(args.xlsx)
         df = d["instrumentos"]
+        nombres = dict(zip(d["concejales"]["ID_Concejal"], d["concejales"]["Nombre completo"]))
     else:
         raise SystemExit("Debe especificar --url o --xlsx")
 
@@ -57,10 +59,10 @@ def cargar(args) -> pd.DataFrame:
     df.columns = [str(c).strip() for c in df.columns]
     if "Partido / Movimiento" in df.columns:
         df["Partido / Movimiento"] = df["Partido / Movimiento"].astype(str).str.strip().str.upper()
-    return df
+    return df, nombres
 
 
-def construir_metrics(df: pd.DataFrame, args) -> dict:
+def construir_metrics(df: pd.DataFrame, nombres: dict, args) -> dict:
     roles = tuple(r.strip() for r in args.rol.split(","))
     col_tema = args.tema
 
@@ -70,6 +72,9 @@ def construir_metrics(df: pd.DataFrame, args) -> dict:
         df_filt = df_filt[df_filt["Incluir en analisis"].astype(str).str.strip().str.lower().eq("si")]
     df_filt = df_filt.dropna(subset=[col_tema])
     universo_temas = sorted(df_filt[col_tema].astype(str).str.strip().unique().tolist())
+    universo_sectores = sorted(
+        df_filt["Sector"].dropna().astype(str).str.strip().replace("", pd.NA).dropna().unique().tolist()
+    ) if "Sector" in df_filt.columns else []
 
     # Matriz global concejal x tema (todos los roles indicados)
     M = matriz_concejal_tema(df, col_tema=col_tema, roles=roles, universo_temas=universo_temas)
@@ -89,6 +94,7 @@ def construir_metrics(df: pd.DataFrame, args) -> dict:
     for cid, h in h_por_concejal.items():
         concejales_out.append({
             "id": cid,
+            "nombre": nombres.get(cid, ""),
             "partido": asignacion.get(cid),
             "n_instrumentos": int(M.loc[cid].sum()),
             "shannon_norm": round(float(h), 4),
@@ -167,6 +173,7 @@ def construir_metrics(df: pd.DataFrame, args) -> dict:
             "min_instrumentos": args.min_instrumentos,
         },
         "universo_temas": universo_temas,
+        "universo_sectores": universo_sectores,
         "concejales": concejales_out,
         "partidos": partidos_out,
         "interpartido": interpartido,
@@ -185,8 +192,8 @@ def main():
     p.add_argument("--out", default="exports/metrics.json")
     args = p.parse_args()
 
-    df = cargar(args)
-    metrics = construir_metrics(df, args)
+    df, nombres = cargar(args)
+    metrics = construir_metrics(df, nombres, args)
 
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)

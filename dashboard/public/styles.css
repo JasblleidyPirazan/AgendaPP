@@ -136,3 +136,35 @@ footer a { color: var(--accent); }
   border-radius: 6px;
   background: #fef2f2;
 }
+
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin: 1rem 0;
+  padding: 0.75rem;
+  background: #fafbfd;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.filtros input[type="search"] {
+  flex: 1;
+  min-width: 200px;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.filtros select {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 0.9rem;
+  background: white;
+}
+
+th.sortable { cursor: pointer; user-select: none; }
+th.sortable:hover { background: #eef0fb; }
