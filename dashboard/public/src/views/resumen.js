@@ -3,7 +3,8 @@ export function renderResumen(root, ctx) {
   const v = m.veredicto;
 
   const nMunicipios = ctx.raw?.municipios?.length ?? "—";
-  const nInstrumentos = ctx.raw?.instrumentos?.length ?? "—";
+  const nInstrumentos = m.n_instrumentos_unicos_incluidos ?? "—";
+  const nInstrumentosTotal = m.n_instrumentos_unicos_total ?? "—";
 
   root.innerHTML = `
     <div class="veredicto">
@@ -24,7 +25,11 @@ export function renderResumen(root, ctx) {
       <div class="card"><div class="label">Sectores</div><div class="value">${(m.universo_sectores ?? []).length}</div></div>
       <div class="card"><div class="label">Temas (Temática)</div><div class="value">${m.universo_temas.length}</div></div>
       <div class="card"><div class="label">Municipios</div><div class="value">${nMunicipios}</div></div>
-      <div class="card"><div class="label">Instrumentos (crudo)</div><div class="value">${nInstrumentos}</div></div>
+      <div class="card">
+        <div class="label">Instrumentos (incluidos)</div>
+        <div class="value">${nInstrumentos}</div>
+        <div style="color:var(--muted);font-size:0.75rem;margin-top:0.25rem">${nInstrumentosTotal} en total (Si + No)</div>
+      </div>
     </div>
 
     <h3>Parámetros del análisis</h3>

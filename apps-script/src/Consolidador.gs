@@ -40,7 +40,11 @@ function consolidar() {
 
     const instrumentosMun = leerTabla_(ss, HOJAS.INSTRUMENTOS)
       .filter(function (r) { return r.Identificador; });
-    instrumentosMun.forEach(function (r) { r.municipio_origen = src.municipio; });
+    instrumentosMun.forEach(function (r) {
+      r.municipio_origen = src.municipio;
+      // ID canonico unico cross-municipio: DANE-Identificador (ej. '05318-001-2012')
+      r.id_instrumento = String(src.dane) + '-' + String(r.Identificador).trim();
+    });
     instrumentos.push.apply(instrumentos, instrumentosMun);
 
     // Validaciones rapidas

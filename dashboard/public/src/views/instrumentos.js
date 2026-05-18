@@ -1,3 +1,7 @@
+// Vista Instrumentos: una fila por instrumento (id = <DANE>-<Identificador>).
+// Actores (Rol + Concejal + Partido) se agregan en columnas/listas.
+// Conteos y barras de frecuencia trabajan sobre instrumentos unicos.
+
 export function renderInstrumentos(root, ctx) {
   if (!ctx.raw || !Array.isArray(ctx.raw.instrumentos)) {
     root.innerHTML = `<p class="empty">
@@ -6,35 +10,32 @@ export function renderInstrumentos(root, ctx) {
     return;
   }
 
-  // Solo instrumentos "incluidos" + dedup por Identificador (un instrumento aparece varias veces, una por rol)
-  const todos = ctx.raw.instrumentos;
-  const incluidosUnicos = dedupPorIdentificador(
-    todos.filter((i) => String(i["Incluir en analisis"]).toLowerCase() === "si")
-  );
+  const rowsRaw = ctx.raw.instrumentos.map(enriquecer);
+  const instrumentos = agregarPorIdInstrumento(rowsRaw);
 
-  const sectores = sorted(unique(incluidosUnicos.map((i) => i.Sector).filter(Boolean)));
-  const tematicas = sorted(unique(incluidosUnicos.map((i) => i.Tematica).filter(Boolean)));
-  const concejales = sorted(unique(todos.map((i) => i.ID_Concejal).filter((x) => x && x !== "ADMINISTRACION")));
-  const partidos = sorted(unique(todos.map((i) => i["Partido / Movimiento"]).filter(Boolean)));
+  const sectores = sorted(unique(instrumentos.flatMap((i) => i.Sector ? [i.Sector] : [])));
+  const tematicas = sorted(unique(instrumentos.flatMap((i) => i.Tematica ? [i.Tematica] : [])));
+  const partidos = sorted(unique(instrumentos.flatMap((i) => Array.from(i._partidos))));
+  const concejales = sorted(unique(instrumentos.flatMap((i) => Array.from(i._concejales).filter((x) => x && x !== "ADMINISTRACION"))));
 
-  // estado UI
   let estado = {
     busqueda: "",
     sector: "__todos__",
     tematica: "__todos__",
     concejal: "__todos__",
     partido: "__todos__",
-    soloSiTema: false,
+    soloSinTema: false,
     incluidos: "si",
-    orden: { col: "Anio", dir: "asc" },
+    orden: { col: "id_instrumento", dir: "asc" },
   };
 
   root.innerHTML = `
-    <h2>Instrumentos — explorador de datos</h2>
-    <p>Vista para detectar errores y entender la distribución. Datos crudos del endpoint Apps Script.</p>
+    <h2>Instrumentos — explorador (un instrumento = una fila)</h2>
+    <p>Datos crudos del endpoint Apps Script, deduplicados por <code>id_instrumento</code> = <code>&lt;DANE&gt;-&lt;Identificador&gt;</code>.
+       Los filtros por concejal o partido muestran instrumentos donde <em>cualquiera</em> de los actores coincide.</p>
 
     <div class="filtros">
-      <input type="search" id="i-busqueda" placeholder="Buscar título / identificador..." />
+      <input type="search" id="i-busqueda" placeholder="Buscar título / id..." />
       <select id="i-incluidos">
         <option value="si">Solo incluidos (Si)</option>
         <option value="no">Solo excluidos (No)</option>
@@ -68,14 +69,12 @@ export function renderInstrumentos(root, ctx) {
     <table id="tabla-i">
       <thead>
         <tr>
-          <th data-col="Identificador">Identificador</th>
+          <th data-col="id_instrumento">ID</th>
           <th data-col="Anio">Año</th>
           <th data-col="Titulo">Título</th>
           <th data-col="Sector">Sector</th>
           <th data-col="Tematica">Temática</th>
-          <th data-col="Rol">Rol</th>
-          <th data-col="ID_Concejal">Concejal</th>
-          <th data-col="Partido / Movimiento">Partido</th>
+          <th data-col="_rolesStr">Actores</th>
           <th data-col="Incluir en analisis">Incluir</th>
         </tr>
       </thead>
@@ -83,12 +82,13 @@ export function renderInstrumentos(root, ctx) {
     </table>
   `;
 
+  // listeners
   document.getElementById("i-busqueda").addEventListener("input", (e) => { estado.busqueda = e.target.value.toLowerCase(); pintar(); });
   document.getElementById("i-sector").addEventListener("change", (e) => { estado.sector = e.target.value; pintar(); });
   document.getElementById("i-tematica").addEventListener("change", (e) => { estado.tematica = e.target.value; pintar(); });
   document.getElementById("i-concejal").addEventListener("change", (e) => { estado.concejal = e.target.value; pintar(); });
   document.getElementById("i-partido").addEventListener("change", (e) => { estado.partido = e.target.value; pintar(); });
-  document.getElementById("i-soloSinTema").addEventListener("change", (e) => { estado.soloSiTema = e.target.checked; pintar(); });
+  document.getElementById("i-soloSinTema").addEventListener("change", (e) => { estado.soloSinTema = e.target.checked; pintar(); });
   document.getElementById("i-incluidos").addEventListener("change", (e) => { estado.incluidos = e.target.value; pintar(); });
 
   document.querySelectorAll("#tabla-i th").forEach((th) => {
@@ -105,19 +105,18 @@ export function renderInstrumentos(root, ctx) {
   });
 
   function pintar() {
-    let base;
-    if (estado.incluidos === "si") base = todos.filter((i) => String(i["Incluir en analisis"]).toLowerCase() === "si");
-    else if (estado.incluidos === "no") base = todos.filter((i) => String(i["Incluir en analisis"]).toLowerCase() === "no");
-    else base = todos.slice();
+    let base = instrumentos;
+    if (estado.incluidos === "si") base = base.filter((i) => i._incluir === "si");
+    else if (estado.incluidos === "no") base = base.filter((i) => i._incluir === "no");
 
     const filtradas = base.filter((i) => {
       if (estado.sector !== "__todos__" && i.Sector !== estado.sector) return false;
       if (estado.tematica !== "__todos__" && i.Tematica !== estado.tematica) return false;
-      if (estado.concejal !== "__todos__" && i.ID_Concejal !== estado.concejal) return false;
-      if (estado.partido !== "__todos__" && i["Partido / Movimiento"] !== estado.partido) return false;
-      if (estado.soloSiTema && i.Tematica) return false;
+      if (estado.concejal !== "__todos__" && !i._concejales.has(estado.concejal)) return false;
+      if (estado.partido !== "__todos__" && !i._partidos.has(estado.partido)) return false;
+      if (estado.soloSinTema && i.Tematica) return false;
       if (estado.busqueda) {
-        const hay = `${i.Identificador ?? ""} ${i.Titulo ?? ""}`.toLowerCase();
+        const hay = `${i.id_instrumento ?? ""} ${i.Titulo ?? ""}`.toLowerCase();
         if (!hay.includes(estado.busqueda)) return false;
       }
       return true;
@@ -131,49 +130,47 @@ export function renderInstrumentos(root, ctx) {
       return 0;
     });
 
-    document.getElementById("i-cuenta").textContent =
-      `${filtradas.length} filas (instrumento × rol). Identificadores únicos: ${unique(filtradas.map((f) => f.Identificador)).length}`;
+    const cuenta = document.getElementById("i-cuenta");
+    cuenta.textContent = `${filtradas.length} instrumentos únicos`;
+    if (filtradas.length > 0) {
+      const sinTema = filtradas.filter((f) => !f.Tematica).length;
+      if (sinTema > 0) cuenta.textContent += ` — ${sinTema} sin Temática`;
+    }
 
-    // Tabla (limita a 500 para perf)
     const muestra = filtradas.slice(0, 500);
     document.getElementById("tabla-i-body").innerHTML = muestra.map((i) => `
       <tr>
-        <td>${i.Identificador ?? "—"}</td>
+        <td><code>${i.id_instrumento ?? "—"}</code></td>
         <td>${i.Anio ?? "—"}</td>
         <td title="${escapeAttr(i.Titulo ?? "")}">${(i.Titulo ?? "").slice(0, 80)}${(i.Titulo ?? "").length > 80 ? "…" : ""}</td>
-        <td>${i.Sector ?? "<span class='tag-bad'>—</span>"}</td>
-        <td>${i.Tematica ?? "<span class='tag-bad'>—</span>"}</td>
-        <td>${i.Rol ?? "—"}</td>
-        <td>${i.ID_Concejal ?? "—"}</td>
-        <td>${i["Partido / Movimiento"] ?? "—"}</td>
-        <td>${i["Incluir en analisis"] ?? "—"}</td>
+        <td>${i.Sector || '<span class="tag-bad">—</span>'}</td>
+        <td>${i.Tematica || '<span class="tag-bad">—</span>'}</td>
+        <td style="font-size:0.85rem">${i._actoresHTML}</td>
+        <td>${i._incluir === "si" ? "Si" : i._incluir === "no" ? '<span class="tag-bad">No</span>' : "—"}</td>
       </tr>
     `).join("");
     if (filtradas.length > 500) {
       document.getElementById("tabla-i-body").innerHTML += `
-        <tr><td colspan="9" style="text-align:center;color:var(--muted);font-style:italic">
+        <tr><td colspan="7" style="text-align:center;color:var(--muted);font-style:italic">
           ... mostrando primeros 500 de ${filtradas.length}. Refina los filtros para ver el resto.
         </td></tr>`;
     }
 
-    // Marcar header activo
     document.querySelectorAll("#tabla-i th").forEach((th) => {
       th.textContent = th.textContent.replace(/ [▲▼]$/, "");
       if (th.dataset.col === estado.orden.col) th.textContent += estado.orden.dir === "asc" ? " ▲" : " ▼";
     });
 
-    // Frecuencias
-    pintarFrecuencias(dedupPorIdentificador(filtradas));
+    pintarFrecuencias(filtradas);
   }
 
   function pintarFrecuencias(unicos) {
-    const root = document.getElementById("freq-bars");
-    root.innerHTML = `
+    document.getElementById("freq-bars").innerHTML = `
       <div id="freq-sector"></div>
       <div id="freq-tematica"></div>
     `;
-    pintarBarras("freq-sector", "Instrumentos por Sector", unicos, "Sector");
-    pintarBarras("freq-tematica", "Instrumentos por Temática", unicos, "Tematica");
+    pintarBarras("freq-sector", "Instrumentos únicos por Sector", unicos, "Sector");
+    pintarBarras("freq-tematica", "Instrumentos únicos por Temática", unicos, "Tematica");
   }
 
   function pintarBarras(elId, titulo, datos, campo) {
@@ -191,7 +188,7 @@ export function renderInstrumentos(root, ctx) {
       marker: { color: pares.map((p) => p[0] === "(vacío)" ? "#d62728" : "#3b3bb3") },
     }], {
       title: { text: titulo, font: { size: 14 } },
-      margin: { l: 180, r: 20, t: 40, b: 40 },
+      margin: { l: 200, r: 20, t: 40, b: 40 },
       height: Math.max(220, 22 * pares.length + 60),
       xaxis: { title: "Instrumentos únicos" },
     }, { responsive: true, displayModeBar: false });
@@ -200,19 +197,75 @@ export function renderInstrumentos(root, ctx) {
   pintar();
 }
 
-// --- helpers ---
+// --- agregacion + helpers ---
+
+function enriquecer(r) {
+  // garantiza id_instrumento si Apps Script aun no lo trae
+  if (!r.id_instrumento && r["Codigo DANE"] && r.Identificador) {
+    const dane = String(r["Codigo DANE"]).padStart(5, "0");
+    r.id_instrumento = `${dane}-${String(r.Identificador).trim()}`;
+  }
+  return r;
+}
+
+function agregarPorIdInstrumento(rows) {
+  const map = new Map();
+  for (const r of rows) {
+    const id = r.id_instrumento;
+    if (!id) continue;
+    if (!map.has(id)) {
+      map.set(id, {
+        id_instrumento: id,
+        Anio: r.Anio,
+        Titulo: r.Titulo,
+        Sector: r.Sector || "",
+        Tematica: r.Tematica || "",
+        _incluir: String(r["Incluir en analisis"] ?? "").toLowerCase(),
+        _actores: [],
+        _concejales: new Set(),
+        _partidos: new Set(),
+        _roles: new Set(),
+      });
+    }
+    const g = map.get(id);
+    // si llegan distintos Sector/Tematica para el mismo instrumento, mantenemos el primero no vacio
+    if (!g.Sector && r.Sector) g.Sector = r.Sector;
+    if (!g.Tematica && r.Tematica) g.Tematica = r.Tematica;
+    g._actores.push({
+      rol: r.Rol ?? "",
+      id_concejal: r.ID_Concejal ?? "",
+      nombre: r["Nombre actor"] ?? "",
+      partido: r["Partido / Movimiento"] ?? "",
+    });
+    if (r.ID_Concejal) g._concejales.add(r.ID_Concejal);
+    if (r["Partido / Movimiento"]) g._partidos.add(r["Partido / Movimiento"]);
+    if (r.Rol) g._roles.add(r.Rol);
+  }
+  for (const g of map.values()) {
+    g._actoresHTML = renderActores(g._actores);
+    g._rolesStr = Array.from(g._roles).sort().join(", "); // para ordenar columna
+  }
+  return Array.from(map.values());
+}
+
+function renderActores(actores) {
+  // agrupa por rol para legibilidad
+  const porRol = {};
+  for (const a of actores) {
+    (porRol[a.rol || "—"] ??= []).push(a);
+  }
+  return Object.keys(porRol).sort().map((rol) => {
+    const lista = porRol[rol].map((a) => {
+      const ident = a.nombre || a.id_concejal || "—";
+      const partido = a.partido ? ` <span style="color:var(--muted)">(${escapeAttr(a.partido)})</span>` : "";
+      return `${escapeAttr(ident)}${partido}`;
+    }).join("; ");
+    return `<strong>${escapeAttr(rol)}:</strong> ${lista}`;
+  }).join("<br>");
+}
 
 function unique(arr) { return Array.from(new Set(arr)); }
 function sorted(arr) { return arr.slice().sort((a, b) => String(a).localeCompare(String(b), "es")); }
-
-function dedupPorIdentificador(arr) {
-  const vistos = new Set();
-  return arr.filter((i) => {
-    if (vistos.has(i.Identificador)) return false;
-    vistos.add(i.Identificador);
-    return true;
-  });
-}
 
 function valorOrden(v) {
   if (v === null || v === undefined) return "";
@@ -222,4 +275,4 @@ function valorOrden(v) {
   return String(v).toLowerCase();
 }
 
-function escapeAttr(s) { return String(s).replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+function escapeAttr(s) { return String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }

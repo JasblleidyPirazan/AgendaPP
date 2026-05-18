@@ -59,6 +59,18 @@ def cargar(args) -> tuple[pd.DataFrame, dict]:
     df.columns = [str(c).strip() for c in df.columns]
     if "Partido / Movimiento" in df.columns:
         df["Partido / Movimiento"] = df["Partido / Movimiento"].astype(str).str.strip().str.upper()
+
+    # ID canonico unico cross-municipio: <DANE>-<Identificador>
+    # Si Apps Script ya lo trae, respetarlo; si no, computarlo.
+    if "id_instrumento" not in df.columns or df["id_instrumento"].isna().all():
+        dane_norm = df.get("Codigo DANE", pd.Series(dtype=str)).astype(str).str.zfill(5)
+        ident = df["Identificador"].astype(str).str.strip()
+        df["id_instrumento"] = dane_norm + "-" + ident
+
+    # Higiene: una fila por (id_instrumento, Rol, ID_Concejal). Evita doble conteo
+    # si por error una persona aparece dos veces como mismo Rol en el mismo instrumento.
+    df = df.drop_duplicates(subset=["id_instrumento", "Rol", "ID_Concejal"])
+
     return df, nombres
 
 
@@ -75,6 +87,10 @@ def construir_metrics(df: pd.DataFrame, nombres: dict, args) -> dict:
     universo_sectores = sorted(
         df_filt["Sector"].dropna().astype(str).str.strip().replace("", pd.NA).dropna().unique().tolist()
     ) if "Sector" in df_filt.columns else []
+
+    # Conteos unicos de instrumentos
+    instrumentos_unicos_incluidos = df_filt["id_instrumento"].nunique()
+    instrumentos_unicos_total = df["id_instrumento"].nunique()
 
     # Matriz global concejal x tema (todos los roles indicados)
     M = matriz_concejal_tema(df, col_tema=col_tema, roles=roles, universo_temas=universo_temas)
@@ -174,6 +190,8 @@ def construir_metrics(df: pd.DataFrame, nombres: dict, args) -> dict:
         },
         "universo_temas": universo_temas,
         "universo_sectores": universo_sectores,
+        "n_instrumentos_unicos_incluidos": int(instrumentos_unicos_incluidos),
+        "n_instrumentos_unicos_total": int(instrumentos_unicos_total),
         "concejales": concejales_out,
         "partidos": partidos_out,
         "interpartido": interpartido,

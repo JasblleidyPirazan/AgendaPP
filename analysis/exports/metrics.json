@@ -1,5 +1,5 @@
 {
-  "generadoEn": "2026-05-18T01:53:55+00:00",
+  "generadoEn": "2026-05-18T02:37:02+00:00",
   "parametros": {
     "rol": [
       "Proponente"
@@ -51,6 +51,8 @@
     "Seguridad, Paz y No Violencia",
     "Social"
   ],
+  "n_instrumentos_unicos_incluidos": 77,
+  "n_instrumentos_unicos_total": 213,
   "concejales": [
     {
       "id": "05318-003",
@@ -140,8 +142,8 @@
       "id": "ADMINISTRACION",
       "nombre": "",
       "partido": "ADMINISTRACION",
-      "n_instrumentos": 71,
-      "shannon_norm": 0.9292
+      "n_instrumentos": 63,
+      "shannon_norm": 0.9238
     }
   ],
   "partidos": [
@@ -152,33 +154,33 @@
       "cv_shannon": null,
       "jaccard_intra": null,
       "perfil_tematico": {
-        "": 0.1127,
-        "Ambiente": 0.0141,
-        "Desarrollo Rural": 0.0423,
-        "Discapacidad": 0.0282,
-        "Discapacidad social": 0.0141,
-        "Economia Circular y gestion de residuos": 0.0141,
-        "Educacion Superior": 0.0423,
-        "Etnias": 0.0141,
-        "Festivales y Eventos": 0.0563,
-        "Fomento, fortalecimiento y estimulos": 0.0563,
-        "Formas de habitar: vivienda, moradores e inquilinatos": 0.0845,
-        "Gestion de Riesgos": 0.0986,
-        "Infancia y adolescencia": 0.0141,
-        "Juventud": 0.0141,
-        "Mujeres": 0.0282,
-        "Participacion ciudadana": 0.0141,
-        "Paz y No-violencia": 0.0282,
-        "Personas mayores": 0.0423,
-        "Planes Educativos y curriculo": 0.0141,
-        "Programas y proyectos asociados al sistema educativo": 0.0423,
-        "Promocion del deporte y recreacion": 0.0423,
-        "Promocion, prevencion y atencion": 0.0563,
-        "Promoción del deporte y recreacion": 0.0141,
-        "Salud mental y adicciones": 0.0282,
-        "Seguridad alimentaria": 0.0141,
-        "Seguridad y convivencia": 0.0141,
-        "Servicios publicos domiciliarios": 0.0563
+        "": 0.1111,
+        "Ambiente": 0.0159,
+        "Desarrollo Rural": 0.0476,
+        "Discapacidad": 0.0317,
+        "Discapacidad social": 0.0159,
+        "Economia Circular y gestion de residuos": 0.0159,
+        "Educacion Superior": 0.0317,
+        "Etnias": 0.0159,
+        "Festivales y Eventos": 0.0159,
+        "Fomento, fortalecimiento y estimulos": 0.0476,
+        "Formas de habitar: vivienda, moradores e inquilinatos": 0.0952,
+        "Gestion de Riesgos": 0.1111,
+        "Infancia y adolescencia": 0.0159,
+        "Juventud": 0.0159,
+        "Mujeres": 0.0317,
+        "Participacion ciudadana": 0.0159,
+        "Paz y No-violencia": 0.0159,
+        "Personas mayores": 0.0317,
+        "Planes Educativos y curriculo": 0.0159,
+        "Programas y proyectos asociados al sistema educativo": 0.0476,
+        "Promocion del deporte y recreacion": 0.0476,
+        "Promocion, prevencion y atencion": 0.0635,
+        "Promoción del deporte y recreacion": 0.0159,
+        "Salud mental y adicciones": 0.0317,
+        "Seguridad alimentaria": 0.0159,
+        "Seguridad y convivencia": 0.0159,
+        "Servicios publicos domiciliarios": 0.0635
       }
     },
     {
@@ -272,42 +274,42 @@
     {
       "a": "ADMINISTRACION",
       "b": "AICO",
-      "pearson": 0.0533
+      "pearson": 0.085
     },
     {
       "a": "ADMINISTRACION",
       "b": "ALIANZA VERDE",
-      "pearson": -0.2013
+      "pearson": -0.1735
     },
     {
       "a": "ADMINISTRACION",
       "b": "PARTIDO ASI",
-      "pearson": 0.0533
+      "pearson": 0.085
     },
     {
       "a": "ADMINISTRACION",
       "b": "PARTIDO CENTRO DEMOCRATICO",
-      "pearson": 0.0533
+      "pearson": 0.085
     },
     {
       "a": "ADMINISTRACION",
       "b": "PARTIDO CONSERVADOR",
-      "pearson": 0.1061
+      "pearson": 0.1011
     },
     {
       "a": "ADMINISTRACION",
       "b": "PARTIDO DE LA U",
-      "pearson": 0.1498
+      "pearson": -0.1204
     },
     {
       "a": "ADMINISTRACION",
       "b": "PARTIDO LIBERAL",
-      "pearson": -0.0433
+      "pearson": -0.0177
     },
     {
       "a": "ADMINISTRACION",
       "b": "PASION POR GUARNE",
-      "pearson": -0.0072
+      "pearson": 0.0044
     },
     {
       "a": "AICO",
