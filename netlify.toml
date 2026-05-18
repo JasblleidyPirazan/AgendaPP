@@ -1,7 +1,6 @@
 [build]
-  base = "dashboard"
-  publish = "public"
-  command = "mkdir -p public/data && cp ../analysis/exports/metrics.json public/data/metrics.json && echo 'metrics.json copiado'"
+  publish = "dashboard/public"
+  command = "mkdir -p dashboard/public/data && cp analysis/exports/metrics.json dashboard/public/data/metrics.json && echo 'metrics.json copiado'"
 
 [[headers]]
   for = "/data/*"
