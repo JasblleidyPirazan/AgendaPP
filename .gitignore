@@ -1,0 +1,31 @@
+# Datos crudos locales (no se publican)
+data/raw/
+*.xlsx
+!analysis/exports/snapshots/*.png
+
+# Apps Script: scriptId puede ser privado segun politica del equipo
+apps-script/.clasp.json
+apps-script/.clasprc.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+.ipynb_checkpoints/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node / Netlify
+node_modules/
+dashboard/.netlify/
+dashboard/public/data/metrics.json
+
+# Editor / SO
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

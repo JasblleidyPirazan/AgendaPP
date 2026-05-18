@@ -1,0 +1,477 @@
+{
+  "generadoEn": "2026-05-18T01:23:21+00:00",
+  "parametros": {
+    "rol": [
+      "Proponente"
+    ],
+    "tema": "Tematica",
+    "min_instrumentos": 3
+  },
+  "universo_temas": [
+    "",
+    "Ambiente",
+    "Biodiversidad y Fauna",
+    "Desarrollo Rural",
+    "Discapacidad",
+    "Discapacidad social",
+    "Economia Circular y gestion de residuos",
+    "Educacion Superior",
+    "Etnias",
+    "Festivales y Eventos",
+    "Fomento, fortalecimiento y estimulos",
+    "Formas de habitar: vivienda, moradores e inquilinatos",
+    "Gestion de Riesgos",
+    "Infancia y adolescencia",
+    "Juventud",
+    "Mercado Laboral",
+    "Mujeres",
+    "Participacion ciudadana",
+    "Paz y No-violencia",
+    "Personas mayores",
+    "Planes Educativos y curriculo",
+    "Programas y proyectos asociados al sistema educativo",
+    "Promocion del deporte y recreacion",
+    "Promocion, prevencion y atencion",
+    "Promoción del deporte y recreacion",
+    "Salud mental y adicciones",
+    "Seguridad alimentaria",
+    "Seguridad y convivencia",
+    "Servicios publicos domiciliarios"
+  ],
+  "concejales": [
+    {
+      "id": "05318-003",
+      "partido": "PARTIDO CONSERVADOR",
+      "n_instrumentos": 1,
+      "shannon_norm": 0.0
+    },
+    {
+      "id": "05318-024",
+      "partido": "PARTIDO CONSERVADOR",
+      "n_instrumentos": 1,
+      "shannon_norm": 0.0
+    },
+    {
+      "id": "05318-025",
+      "partido": "PARTIDO CONSERVADOR",
+      "n_instrumentos": 1,
+      "shannon_norm": 0.0
+    },
+    {
+      "id": "05318-026",
+      "partido": "PARTIDO CONSERVADOR",
+      "n_instrumentos": 3,
+      "shannon_norm": 1.0
+    },
+    {
+      "id": "05318-035",
+      "partido": "PARTIDO LIBERAL",
+      "n_instrumentos": 1,
+      "shannon_norm": 0.0
+    },
+    {
+      "id": "05318-038",
+      "partido": "PASION POR GUARNE",
+      "n_instrumentos": 1,
+      "shannon_norm": 0.0
+    },
+    {
+      "id": "05318-040",
+      "partido": "PASION POR GUARNE",
+      "n_instrumentos": 4,
+      "shannon_norm": 0.9464
+    },
+    {
+      "id": "05318-041",
+      "partido": "PARTIDO CENTRO DEMOCRATICO",
+      "n_instrumentos": 1,
+      "shannon_norm": 0.0
+    },
+    {
+      "id": "05318-043",
+      "partido": "PARTIDO DE LA U",
+      "n_instrumentos": 1,
+      "shannon_norm": 0.0
+    },
+    {
+      "id": "05318-044",
+      "partido": "AICO",
+      "n_instrumentos": 1,
+      "shannon_norm": 0.0
+    },
+    {
+      "id": "05318-045",
+      "partido": "PARTIDO ASI",
+      "n_instrumentos": 1,
+      "shannon_norm": 0.0
+    },
+    {
+      "id": "05318-046",
+      "partido": "ALIANZA VERDE",
+      "n_instrumentos": 2,
+      "shannon_norm": 1.0
+    },
+    {
+      "id": "ADMINISTRACION",
+      "partido": "ADMINISTRACION",
+      "n_instrumentos": 71,
+      "shannon_norm": 0.9292
+    }
+  ],
+  "partidos": [
+    {
+      "nombre": "ADMINISTRACION",
+      "n_concejales": 1,
+      "n_concejales_aptos": 1,
+      "cv_shannon": null,
+      "jaccard_intra": null,
+      "perfil_tematico": {
+        "": 0.1127,
+        "Ambiente": 0.0141,
+        "Desarrollo Rural": 0.0423,
+        "Discapacidad": 0.0282,
+        "Discapacidad social": 0.0141,
+        "Economia Circular y gestion de residuos": 0.0141,
+        "Educacion Superior": 0.0423,
+        "Etnias": 0.0141,
+        "Festivales y Eventos": 0.0563,
+        "Fomento, fortalecimiento y estimulos": 0.0563,
+        "Formas de habitar: vivienda, moradores e inquilinatos": 0.0845,
+        "Gestion de Riesgos": 0.0986,
+        "Infancia y adolescencia": 0.0141,
+        "Juventud": 0.0141,
+        "Mujeres": 0.0282,
+        "Participacion ciudadana": 0.0141,
+        "Paz y No-violencia": 0.0282,
+        "Personas mayores": 0.0423,
+        "Planes Educativos y curriculo": 0.0141,
+        "Programas y proyectos asociados al sistema educativo": 0.0423,
+        "Promocion del deporte y recreacion": 0.0423,
+        "Promocion, prevencion y atencion": 0.0563,
+        "Promoción del deporte y recreacion": 0.0141,
+        "Salud mental y adicciones": 0.0282,
+        "Seguridad alimentaria": 0.0141,
+        "Seguridad y convivencia": 0.0141,
+        "Servicios publicos domiciliarios": 0.0563
+      }
+    },
+    {
+      "nombre": "AICO",
+      "n_concejales": 1,
+      "n_concejales_aptos": 0,
+      "cv_shannon": null,
+      "jaccard_intra": null,
+      "perfil_tematico": {
+        "Desarrollo Rural": 1.0
+      }
+    },
+    {
+      "nombre": "ALIANZA VERDE",
+      "n_concejales": 1,
+      "n_concejales_aptos": 0,
+      "cv_shannon": null,
+      "jaccard_intra": null,
+      "perfil_tematico": {
+        "Ambiente": 0.5,
+        "Economia Circular y gestion de residuos": 0.5
+      }
+    },
+    {
+      "nombre": "PARTIDO ASI",
+      "n_concejales": 1,
+      "n_concejales_aptos": 0,
+      "cv_shannon": null,
+      "jaccard_intra": null,
+      "perfil_tematico": {
+        "Desarrollo Rural": 1.0
+      }
+    },
+    {
+      "nombre": "PARTIDO CENTRO DEMOCRATICO",
+      "n_concejales": 1,
+      "n_concejales_aptos": 0,
+      "cv_shannon": null,
+      "jaccard_intra": null,
+      "perfil_tematico": {
+        "Desarrollo Rural": 1.0
+      }
+    },
+    {
+      "nombre": "PARTIDO CONSERVADOR",
+      "n_concejales": 4,
+      "n_concejales_aptos": 1,
+      "cv_shannon": null,
+      "jaccard_intra": null,
+      "perfil_tematico": {
+        "": 0.3333,
+        "Ambiente": 0.1667,
+        "Biodiversidad y Fauna": 0.3333,
+        "Juventud": 0.1667
+      }
+    },
+    {
+      "nombre": "PARTIDO DE LA U",
+      "n_concejales": 1,
+      "n_concejales_aptos": 0,
+      "cv_shannon": null,
+      "jaccard_intra": null,
+      "perfil_tematico": {
+        "Festivales y Eventos": 1.0
+      }
+    },
+    {
+      "nombre": "PARTIDO LIBERAL",
+      "n_concejales": 1,
+      "n_concejales_aptos": 0,
+      "cv_shannon": null,
+      "jaccard_intra": null,
+      "perfil_tematico": {
+        "Mujeres": 1.0
+      }
+    },
+    {
+      "nombre": "PASION POR GUARNE",
+      "n_concejales": 2,
+      "n_concejales_aptos": 1,
+      "cv_shannon": null,
+      "jaccard_intra": null,
+      "perfil_tematico": {
+        "Desarrollo Rural": 0.6,
+        "Educacion Superior": 0.2,
+        "Mercado Laboral": 0.2
+      }
+    }
+  ],
+  "interpartido": [
+    {
+      "a": "ADMINISTRACION",
+      "b": "AICO",
+      "pearson": 0.0533
+    },
+    {
+      "a": "ADMINISTRACION",
+      "b": "ALIANZA VERDE",
+      "pearson": -0.2013
+    },
+    {
+      "a": "ADMINISTRACION",
+      "b": "PARTIDO ASI",
+      "pearson": 0.0533
+    },
+    {
+      "a": "ADMINISTRACION",
+      "b": "PARTIDO CENTRO DEMOCRATICO",
+      "pearson": 0.0533
+    },
+    {
+      "a": "ADMINISTRACION",
+      "b": "PARTIDO CONSERVADOR",
+      "pearson": 0.1061
+    },
+    {
+      "a": "ADMINISTRACION",
+      "b": "PARTIDO DE LA U",
+      "pearson": 0.1498
+    },
+    {
+      "a": "ADMINISTRACION",
+      "b": "PARTIDO LIBERAL",
+      "pearson": -0.0433
+    },
+    {
+      "a": "ADMINISTRACION",
+      "b": "PASION POR GUARNE",
+      "pearson": -0.0072
+    },
+    {
+      "a": "AICO",
+      "b": "ALIANZA VERDE",
+      "pearson": -0.0514
+    },
+    {
+      "a": "AICO",
+      "b": "PARTIDO ASI",
+      "pearson": 1.0
+    },
+    {
+      "a": "AICO",
+      "b": "PARTIDO CENTRO DEMOCRATICO",
+      "pearson": 1.0
+    },
+    {
+      "a": "AICO",
+      "b": "PARTIDO CONSERVADOR",
+      "pearson": -0.0711
+    },
+    {
+      "a": "AICO",
+      "b": "PARTIDO DE LA U",
+      "pearson": -0.0357
+    },
+    {
+      "a": "AICO",
+      "b": "PARTIDO LIBERAL",
+      "pearson": -0.0357
+    },
+    {
+      "a": "AICO",
+      "b": "PASION POR GUARNE",
+      "pearson": 0.9038
+    },
+    {
+      "a": "ALIANZA VERDE",
+      "b": "PARTIDO ASI",
+      "pearson": -0.0514
+    },
+    {
+      "a": "ALIANZA VERDE",
+      "b": "PARTIDO CENTRO DEMOCRATICO",
+      "pearson": -0.0514
+    },
+    {
+      "a": "ALIANZA VERDE",
+      "b": "PARTIDO CONSERVADOR",
+      "pearson": 0.1452
+    },
+    {
+      "a": "ALIANZA VERDE",
+      "b": "PARTIDO DE LA U",
+      "pearson": -0.0514
+    },
+    {
+      "a": "ALIANZA VERDE",
+      "b": "PARTIDO LIBERAL",
+      "pearson": -0.0514
+    },
+    {
+      "a": "ALIANZA VERDE",
+      "b": "PASION POR GUARNE",
+      "pearson": -0.0794
+    },
+    {
+      "a": "PARTIDO ASI",
+      "b": "PARTIDO CENTRO DEMOCRATICO",
+      "pearson": 1.0
+    },
+    {
+      "a": "PARTIDO ASI",
+      "b": "PARTIDO CONSERVADOR",
+      "pearson": -0.0711
+    },
+    {
+      "a": "PARTIDO ASI",
+      "b": "PARTIDO DE LA U",
+      "pearson": -0.0357
+    },
+    {
+      "a": "PARTIDO ASI",
+      "b": "PARTIDO LIBERAL",
+      "pearson": -0.0357
+    },
+    {
+      "a": "PARTIDO ASI",
+      "b": "PASION POR GUARNE",
+      "pearson": 0.9038
+    },
+    {
+      "a": "PARTIDO CENTRO DEMOCRATICO",
+      "b": "PARTIDO CONSERVADOR",
+      "pearson": -0.0711
+    },
+    {
+      "a": "PARTIDO CENTRO DEMOCRATICO",
+      "b": "PARTIDO DE LA U",
+      "pearson": -0.0357
+    },
+    {
+      "a": "PARTIDO CENTRO DEMOCRATICO",
+      "b": "PARTIDO LIBERAL",
+      "pearson": -0.0357
+    },
+    {
+      "a": "PARTIDO CENTRO DEMOCRATICO",
+      "b": "PASION POR GUARNE",
+      "pearson": 0.9038
+    },
+    {
+      "a": "PARTIDO CONSERVADOR",
+      "b": "PARTIDO DE LA U",
+      "pearson": -0.0711
+    },
+    {
+      "a": "PARTIDO CONSERVADOR",
+      "b": "PARTIDO LIBERAL",
+      "pearson": -0.0711
+    },
+    {
+      "a": "PARTIDO CONSERVADOR",
+      "b": "PASION POR GUARNE",
+      "pearson": -0.1098
+    },
+    {
+      "a": "PARTIDO DE LA U",
+      "b": "PARTIDO LIBERAL",
+      "pearson": -0.0357
+    },
+    {
+      "a": "PARTIDO DE LA U",
+      "b": "PASION POR GUARNE",
+      "pearson": -0.0551
+    },
+    {
+      "a": "PARTIDO LIBERAL",
+      "b": "PASION POR GUARNE",
+      "pearson": -0.0551
+    }
+  ],
+  "excluidos_min_instrumentos": [
+    {
+      "id": "05318-044",
+      "partido": "AICO"
+    },
+    {
+      "id": "05318-046",
+      "partido": "ALIANZA VERDE"
+    },
+    {
+      "id": "05318-045",
+      "partido": "PARTIDO ASI"
+    },
+    {
+      "id": "05318-041",
+      "partido": "PARTIDO CENTRO DEMOCRATICO"
+    },
+    {
+      "id": "05318-003",
+      "partido": "PARTIDO CONSERVADOR"
+    },
+    {
+      "id": "05318-024",
+      "partido": "PARTIDO CONSERVADOR"
+    },
+    {
+      "id": "05318-025",
+      "partido": "PARTIDO CONSERVADOR"
+    },
+    {
+      "id": "05318-043",
+      "partido": "PARTIDO DE LA U"
+    },
+    {
+      "id": "05318-035",
+      "partido": "PARTIDO LIBERAL"
+    },
+    {
+      "id": "05318-038",
+      "partido": "PASION POR GUARNE"
+    }
+  ],
+  "veredicto": {
+    "umbral_cv": 0.3,
+    "umbral_jaccard": 0.5,
+    "partidos_apoyan_H1": 0,
+    "partidos_apoyan_H2": 0,
+    "partidos_ambiguos": 9,
+    "interpretacion": "Resultado mixto / no concluyente"
+  }
+}

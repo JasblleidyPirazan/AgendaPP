@@ -1,0 +1,15 @@
+[build]
+  base = "dashboard"
+  publish = "public"
+  command = "mkdir -p public/data && cp ../analysis/exports/metrics.json public/data/metrics.json && echo 'metrics.json copiado'"
+
+[[headers]]
+  for = "/data/*"
+  [headers.values]
+    Cache-Control = "public, max-age=300"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
