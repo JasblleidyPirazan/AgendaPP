@@ -26,7 +26,7 @@ export function renderResumen(root, ctx) {
       <div class="card"><div class="label">Concejales</div><div class="value">${m.concejales.length}</div></div>
       <div class="card"><div class="label">Partidos</div><div class="value">${m.partidos.length}</div></div>
       <div class="card"><div class="label">Sectores</div><div class="value">${(m.universo_sectores ?? []).length}</div></div>
-      <div class="card"><div class="label">Temas (Temática)</div><div class="value">${m.universo_temas.length}</div></div>
+      <div class="card"><div class="label">Niveles (${m.parametros?.tema ?? "Temática"})</div><div class="value">${m.universo_temas.length}</div></div>
       <div class="card"><div class="label">Municipios</div><div class="value">${nMunicipios}</div></div>
       <div class="card">
         <div class="label">Instrumentos (incluidos)</div>

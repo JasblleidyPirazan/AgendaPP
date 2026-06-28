@@ -49,19 +49,41 @@ function consolidar() {
     municipios.push(Object.assign({ municipio: src.municipio, dane: src.dane }, datosMun));
 
     const concejalesMun = leerTabla_(ss, HOJAS.CONCEJALES).filter(function (r) { return r.ID_Concejal; });
-    concejalesMun.forEach(function (c) { c.municipio = src.municipio; });
+    concejalesMun.forEach(function (c) {
+      c.municipio = src.municipio;
+      // ID canonico cross-municipio. Plantilla v2 usa IDs numericos ("1") que
+      // colisionarian entre municipios; se les antepone el DANE.
+      c.ID_Concejal = idConcejalCanonico_(c.ID_Concejal, src.dane);
+    });
     concejales.push.apply(concejales, concejalesMun);
 
     const partidosMun = leerTabla_(ss, HOJAS.PARTIDOS).filter(function (r) { return r['PARTIDO / MOVIMIENTO']; });
     partidosMun.forEach(function (p) { p.municipio = src.municipio; });
     partidos.push.apply(partidos, partidosMun);
 
+    // Mapa ID_Concejal -> Partido desde el maestro. La plantilla v2 NO trae la
+    // columna 'Partido / Movimiento' en Instrumentos; se completa por join.
+    const partidoPorConcejal = {};
+    concejalesMun.forEach(function (c) {
+      if (c.ID_Concejal && c['Partido / Movimiento']) {
+        partidoPorConcejal[c.ID_Concejal] = c['Partido / Movimiento'];
+      }
+    });
+
     const instrumentosMun = leerTabla_(ss, HOJAS.INSTRUMENTOS)
       .filter(function (r) { return r.Identificador; });
     instrumentosMun.forEach(function (r) {
       r.municipio_origen = src.municipio;
+      // Codigo DANE confiable desde la config (la hoja puede traerlo vacio o sin ceros).
+      r['Codigo DANE'] = String(src.dane);
       // ID canonico unico cross-municipio: DANE-Identificador (ej. '05318-001-2012')
       r.id_instrumento = String(src.dane) + '-' + String(r.Identificador).trim();
+      r.ID_Concejal = idConcejalCanonico_(r.ID_Concejal, src.dane);
+      // Completar partido desde el maestro si la hoja no lo trae (plantilla v2).
+      if (!r['Partido / Movimiento'] || String(r['Partido / Movimiento']).trim() === '') {
+        var p = partidoPorConcejal[r.ID_Concejal];
+        if (p) r['Partido / Movimiento'] = p;
+      }
     });
     instrumentos.push.apply(instrumentos, instrumentosMun);
 
@@ -101,15 +123,65 @@ function consolidar() {
 }
 
 /**
- * Lee una hoja tabular tomando el header de FILA_HEADER[nombre]. Devuelve
- * array de objetos {header: valor}, omitiendo filas totalmente vacias.
+ * Columna "ancla" que identifica la fila de encabezado de cada hoja. Permite
+ * soportar variantes de plantilla donde los headers no estan en una fila fija
+ * (p. ej. Instrumentos en fila 1 en la plantilla vieja y en fila 3 en la v2).
+ */
+const ANCHORS_HEADER = Object.freeze({
+  Instrumentos: ['Identificador'],
+  MaestroConcejales: ['ID_Concejal'],
+  MaestroPartidos: ['PARTIDO / MOVIMIENTO'],
+  DatosMunicipio: ['Campo'],
+  Listas: [],
+});
+
+/**
+ * Devuelve la fila (1-indexed) del encabezado: busca la columna ancla en las
+ * primeras filas; si no la encuentra, cae a FILA_HEADER[nombre] || 1.
+ */
+function detectarFilaHeader_(sheet, nombreHoja, lastCol) {
+  const fallback = FILA_HEADER[nombreHoja] || 1;
+  const anchors = (ANCHORS_HEADER[nombreHoja] || []).map(function (a) { return a.toLowerCase(); });
+  if (anchors.length === 0) return fallback;
+  const maxScan = Math.min(8, sheet.getLastRow());
+  if (maxScan < 1) return fallback;
+  const bloque = sheet.getRange(1, 1, maxScan, lastCol).getValues();
+  for (var i = 0; i < bloque.length; i++) {
+    var celdas = bloque[i].map(function (c) { return String(c).trim().toLowerCase(); });
+    for (var a = 0; a < anchors.length; a++) {
+      if (celdas.indexOf(anchors[a]) !== -1) return i + 1;
+    }
+  }
+  return fallback;
+}
+
+/**
+ * Canoniza un ID_Concejal a forma unica cross-municipio.
+ * - "1.0"/"1" (plantilla v2) -> "<DANE>-1"
+ * - "05318-003" (ya prefijado con DANE) -> se respeta
+ * - "ADMINISTRACION" -> se respeta
+ */
+function idConcejalCanonico_(raw, dane) {
+  var s = String(raw == null ? '' : raw).trim();
+  if (!s) return '';
+  if (/^\d+\.0+$/.test(s)) s = s.replace(/\.0+$/, ''); // "1.0" -> "1"
+  if (/^\d{5}-/.test(s)) return s;                      // ya viene "DANE-..."
+  if (s.toUpperCase() === 'ADMINISTRACION') return 'ADMINISTRACION';
+  return String(dane) + '-' + s;
+}
+
+/**
+ * Lee una hoja tabular detectando la fila de encabezado. Devuelve array de
+ * objetos {header: valor}, omitiendo filas totalmente vacias.
  */
 function leerTabla_(ss, nombreHoja) {
   const sheet = ss.getSheetByName(nombreHoja);
   if (!sheet) return [];
-  const filaHeader = FILA_HEADER[nombreHoja] || 1;
   const lastCol = sheet.getLastColumn();
   const lastRow = sheet.getLastRow();
+  if (lastCol < 1 || lastRow < 2) return [];
+
+  const filaHeader = detectarFilaHeader_(sheet, nombreHoja, lastCol);
   if (lastRow < filaHeader + 1) return [];
 
   const headers = sheet.getRange(filaHeader, 1, 1, lastCol).getValues()[0]

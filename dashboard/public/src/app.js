@@ -173,6 +173,7 @@ function configurarFiltros(ctx) {
   const selRoles = new Set(rolesDisp.filter((r) => DEFAULT_ROLES.some((d) => d.toLowerCase() === r.toLowerCase())));
   if (selRoles.size === 0) rolesDisp.forEach((r) => selRoles.add(r));
   const selMun = new Set(munDisp.map((m) => m.dane));
+  let selColTema = "Tematica"; // nivel de analisis: "Tematica" (fino) o "Sector" (agregado)
 
   function chip(label, checked, onToggle) {
     const wrap = document.createElement("label");
@@ -182,6 +183,19 @@ function configurarFiltros(ctx) {
     wrap.querySelector("input").addEventListener("change", (e) => onToggle(e.target.checked));
     return wrap;
   }
+
+  // Nivel: chips tipo radio (exclusivos)
+  const contNivel = document.getElementById("filtro-nivel");
+  const NIVELES = [{ val: "Tematica", label: "Temática" }, { val: "Sector", label: "Sector" }];
+  function pintarNivel() {
+    contNivel.innerHTML = "";
+    NIVELES.forEach((n) => {
+      const c = chip(n.label, selColTema === n.val, () => { selColTema = n.val; pintarNivel(); recompute(); });
+      c.querySelector("input").type = "radio";
+      contNivel.appendChild(c);
+    });
+  }
+  pintarNivel();
 
   contRoles.innerHTML = "";
   rolesDisp.forEach((r) =>
@@ -201,11 +215,13 @@ function configurarFiltros(ctx) {
         ctx.metrics = construirMetrics(ctx.raw.instrumentos, ctx.raw.concejales, {
           roles: Array.from(selRoles),
           municipios: Array.from(selMun),
+          colTema: selColTema,
         });
         refrescarTimestamp(ctx);
         const vista = document.querySelector("nav button.active")?.dataset.view || "resumen";
         activarVista(vista, ctx);
-        estado.textContent = `✓ ${selRoles.size} rol(es), ${selMun.size}/${munDisp.length} municipio(s) · ${ctx.metrics.concejales.length} concejales`;
+        const nivelTxt = selColTema === "Sector" ? "Sector" : "Temática";
+        estado.textContent = `✓ ${nivelTxt} · ${selRoles.size} rol(es), ${selMun.size}/${munDisp.length} municipio(s) · ${ctx.metrics.concejales.length} concejales`;
       } catch (err) {
         estado.textContent = `✗ ${err.message}`;
         console.error(err);
