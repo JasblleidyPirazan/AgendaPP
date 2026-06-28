@@ -17,10 +17,7 @@ const SHEETS_FUENTE = [
   { municipio: 'RIONEGRO',       dane: '05615', fileId: '1ETVudZa9QobuN2KZDFBO04PzXOCBeQXReiCO7jx4fbY' },
   { municipio: 'ABREAQUI',       dane: '05004', fileId: '1fSwTyUiLeRvNkjSUs0YJJl3PTbJl-9tbsdBz8QN7eYY' },
   { municipio: 'ANGELOPOLIS',    dane: '05036', fileId: '1Sn7QcIm72hOGB4POFDyhyqfWEzalsLviCjavaQ8h78Q' },
-  // FIXME: este fileId es el MISMO de CIUDAD BOLIVAR -> lee el Sheet equivocado y
-  // duplicaria los datos de Ciudad Bolivar bajo el DANE 05686. Reemplazar por el
-  // fileId del Sheet real de Santa Rosa de Osos antes de desplegar.
-  { municipio: 'SANTA ROSA DE OSOS', dane: '05686', fileId: '1b40HESqOmltVneOEWTvh1jOtVwIO7EkYFI7D2MzkU_g' },
+  { municipio: 'SANTA ROSA DE OSOS', dane: '05686', fileId: '1_Ghr70yPZWRy3bsVpho93D1L4tK-im-DIZkrJWa_U1o' },
   { municipio: 'VALDIVIA',       dane: '05854', fileId: '1sbU9BuvPRusMBtRzX8WEHjWnkzkTISar8X-on22RJh8' },
 ];
 
