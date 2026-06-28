@@ -15,6 +15,6 @@
 | **Coalición** | Alianza temporal de partidos. Marcada como `TIPO = COALICION` en `MaestroPartidos`. |
 | **Plantilla AgendaPP** | Estructura idéntica de Excel/Sheet que comparten todos los municipios (hojas Instructivo, DatosMunicipio, MaestroConcejales, MaestroPartidos, Instrumentos, Proyectos_a_Acuerdo, Ejemplo, Listas). |
 | **Universo de temas** | Conjunto global de temas (`Tematica`) observados en al menos un instrumento `Incluir=Si`. Sirve para alinear vectores entre partidos al calcular Pearson. |
-| **Concejal apto** | Concejal con ≥ N instrumentos atribuidos como Proponente (default N=3). Solo los aptos cuentan para CV y Jaccard intra-partido. |
+| **Concejal apto** | Concejal con ≥ N instrumentos atribuidos como autor (Proponente o Ponente; default N=1). Solo los aptos cuentan para CV y Jaccard intra-partido. |
 | **CV** | Coeficiente de Variación. Aquí: σ/μ de los Shannon normalizados de los concejales de un partido. |
 | **Jaccard pareado** | Promedio de los Jaccard sobre todos los pares de concejales del partido (matriz binarizada concejal × tema). |

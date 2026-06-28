@@ -7,7 +7,7 @@ from typing import Iterable
 import numpy as np
 import pandas as pd
 
-ROLES_DEFAULT = ("Proponente",)
+ROLES_DEFAULT = ("Proponente", "Ponente")
 COL_TEMA_DEFAULT = "Tematica"
 MIN_INSTRUMENTOS_DEFAULT = 1
 

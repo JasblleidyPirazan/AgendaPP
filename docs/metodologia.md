@@ -12,7 +12,7 @@
 - **Unidad de observación**: instrumento legislativo (Acuerdo, Proyecto de Acuerdo, Política Pública, etc.) — fila `Identificador` en hoja `Instrumentos`.
 - **Atribución a actores**: cada instrumento puede tener varias filas con distintos `Rol` (Proponente, Ponente, Coordinador, ...).
 - **Filtro inicial**: `Incluir en analisis == "Si"`.
-- **Atribución temática por defecto**: solo `Rol == Proponente` (autoría). Cambiable con `--rol`.
+- **Atribución temática por defecto**: `Rol ∈ {Proponente, Ponente}` (autoría y ponencia). Cambiable con `--rol`.
 - **Variable temática por defecto**: `Tematica` OPPAM. Alternativas: `Sector` (agregación más alta) o `Tema segun Concejo` (texto libre, no estandarizado — solo para auditoría).
 - **Umbral mínimo**: por defecto **N = 1** (todos los concejales con al menos un instrumento entran a CV y Jaccard). Un concejal con un único instrumento tiene `H = 0` por construcción — eso **es** información (hiperespecialización), no ruido. El parámetro se puede subir con `--min-instrumentos` si se quiere ser conservador (p. ej., 3 para sólo concejales con volumen suficiente para que su `H` sea estadísticamente más estable).
 
@@ -84,7 +84,7 @@ Las correlaciones inter-partido se reportan como evidencia adicional: bajo H1 es
 
 1. **Adaptación a partir de la ecología.** Shannon y Pielou fueron diseñados para diversidad de especies; aquí se aplican a temas legislativos. La literatura de cohesión partidista típicamente usa **roll-call votes** ([B-Call, Frontiers 2025](https://www.frontiersin.org/journals/political-science/articles/10.3389/fpos.2025.1670089/full)). Aplicarlos a la composición temática de **instrumentos** es razonable pero **no es el estándar** — debe declararse en cualquier reporte.
 
-2. **Sensibilidad a la atribución de autoría.** El default es `Proponente`. Incluir `Ponente`/`Coordinador` aumenta el `n` por concejal pero diluye la señal de "agenda propia". Comparar ambos escenarios es recomendable.
+2. **Sensibilidad a la atribución de autoría.** El default incluye `Proponente` y `Ponente`, lo que aumenta el `n` por concejal a costa de diluir parcialmente la señal de "agenda propia" (la ponencia no implica iniciativa). Para aislar solo la autoría estricta, correr con `--rol Proponente`; comparar ambos escenarios es recomendable. Sumar `Coordinador` diluye aún más.
 
 3. **Riqueza observada vs. universo.** El Shannon se normaliza por la **riqueza observada del concejal** (no por el universo global). Esto evita penalizar a concejales de bajo volumen y se alinea con la práctica ecológica; el costo es que dos concejales con `H = 1` pero distintos `|T_c|` no son directamente comparables. Usar `n_instrumentos` como contexto.
 

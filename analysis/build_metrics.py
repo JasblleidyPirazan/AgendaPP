@@ -8,7 +8,7 @@ Uso:
     python build_metrics.py --xlsx ../Guarne_DILIGENCIADO.xlsx
 
 Parametros metodologicos (con defaults conservadores documentados en docs/metodologia.md):
-    --rol Proponente            qué Rol(es) cuentan para atribuir un tema (lista separada por comas)
+    --rol Proponente,Ponente    qué Rol(es) cuentan para atribuir un tema (lista separada por comas)
     --tema Tematica             columna de tema (Sector | Tematica | Tema segun Concejo)
     --min-instrumentos 3        excluir concejales con menos instrumentos del CV/Jaccard
 """
@@ -205,10 +205,10 @@ def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--url", help="URL del Web App Apps Script")
     p.add_argument("--xlsx", help="Ruta a un Excel local (fallback)")
-    p.add_argument("--rol", default="Proponente", help="Rol(es) separados por coma")
+    p.add_argument("--rol", default="Proponente,Ponente", help="Rol(es) separados por coma")
     p.add_argument("--tema", default="Tematica", choices=["Sector", "Tematica", "Tema segun Concejo"])
     p.add_argument("--min-instrumentos", type=int, default=1,
-                   help="Concejales con < N instrumentos como Proponente se excluyen de CV/Jaccard. "
+                   help="Concejales con < N instrumentos como autor (Proponente/Ponente) se excluyen de CV/Jaccard. "
                         "Default 1 = incluir a todos (H=0 representa hiperespecializacion).")
     p.add_argument("--out", default="exports/metrics.json")
     args = p.parse_args()
