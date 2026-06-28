@@ -33,6 +33,19 @@ def barras_cv_por_partido(cv_serie: pd.Series, umbral: float = 0.3) -> go.Figure
     return fig
 
 
+def barras_shannon_por_partido(h_serie: pd.Series) -> go.Figure:
+    """Shannon del bloque por partido: diversidad de la agenda agregada (0=focalizada, 1=amplia)."""
+    ordenadas = h_serie.sort_values(ascending=False)
+    fig = go.Figure(go.Bar(x=ordenadas.values, y=ordenadas.index, orientation="h", marker_color="#3b3bb3"))
+    fig.update_layout(
+        title="Shannon del bloque por partido (0 = agenda focalizada, 1 = amplia)",
+        xaxis_title="H normalizado del perfil agregado",
+        yaxis_title="Partido",
+        height=max(300, 30 * len(ordenadas)),
+    )
+    return fig
+
+
 def barras_jaccard_por_partido(j_serie: pd.Series, umbral: float = 0.5) -> go.Figure:
     ordenadas = j_serie.sort_values(ascending=False)
     colors = ["#2ca02c" if v >= umbral else "#d62728" for v in ordenadas.values]

@@ -5,8 +5,19 @@
       "Proponente"
     ],
     "tema": "Tematica",
-    "min_instrumentos": 1
+    "min_instrumentos": 1,
+    "municipios": "todos"
   },
+  "municipios": [
+    {
+      "dane": "05318",
+      "municipio": "GUARNE"
+    },
+    {
+      "dane": "05854",
+      "municipio": "VALDIVIA"
+    }
+  ],
   "universo_temas": [
     "Ambiente",
     "Biodiversidad y Fauna",
@@ -62,98 +73,112 @@
       "nombre": "Carlos Adrian Ospina Hurtado",
       "partido": "PARTIDO CONSERVADOR",
       "n_instrumentos": 1,
-      "shannon_norm": 0.0
+      "shannon_norm": 0.0,
+      "municipio": "GUARNE"
     },
     {
       "id": "05318-026",
       "nombre": "Jonathan Gómez Giraldo",
       "partido": "PARTIDO CONSERVADOR",
       "n_instrumentos": 3,
-      "shannon_norm": 1.0
+      "shannon_norm": 1.0,
+      "municipio": "GUARNE"
     },
     {
       "id": "05318-035",
       "nombre": "Nidia Hincapie Hincapie",
       "partido": "PARTIDO LIBERAL",
       "n_instrumentos": 1,
-      "shannon_norm": 0.0
+      "shannon_norm": 0.0,
+      "municipio": "GUARNE"
     },
     {
       "id": "05318-038",
       "nombre": "Carlos Andres Gallego Naranjo",
       "partido": "PASION POR GUARNE",
       "n_instrumentos": 1,
-      "shannon_norm": 0.0
+      "shannon_norm": 0.0,
+      "municipio": "GUARNE"
     },
     {
       "id": "05318-040",
       "nombre": "José David Llano Gallego",
       "partido": "PASION POR GUARNE",
       "n_instrumentos": 4,
-      "shannon_norm": 0.9464
+      "shannon_norm": 0.9464,
+      "municipio": "GUARNE"
     },
     {
       "id": "05318-041",
       "nombre": "Jefferson Arley Iral Cardona",
       "partido": "PARTIDO CENTRO DEMOCRATICO",
       "n_instrumentos": 1,
-      "shannon_norm": 0.0
+      "shannon_norm": 0.0,
+      "municipio": "GUARNE"
     },
     {
       "id": "05318-043",
       "nombre": "Fredy Abelardo Rodriguez Osorio",
       "partido": "PARTIDO DE LA U",
       "n_instrumentos": 1,
-      "shannon_norm": 0.0
+      "shannon_norm": 0.0,
+      "municipio": "GUARNE"
     },
     {
       "id": "05318-044",
       "nombre": "Javier Alfredo Gallego Londoño",
       "partido": "AICO",
       "n_instrumentos": 1,
-      "shannon_norm": 0.0
+      "shannon_norm": 0.0,
+      "municipio": "GUARNE"
     },
     {
       "id": "05318-045",
       "nombre": "Julián Ochoa Rivera",
       "partido": "PARTIDO ASI",
       "n_instrumentos": 1,
-      "shannon_norm": 0.0
+      "shannon_norm": 0.0,
+      "municipio": "GUARNE"
     },
     {
       "id": "05318-046",
       "nombre": "Jhon Anderson Salazar Sánchez",
       "partido": "ALIANZA VERDE",
       "n_instrumentos": 2,
-      "shannon_norm": 1.0
+      "shannon_norm": 1.0,
+      "municipio": "GUARNE"
     },
     {
       "id": "05854-003",
       "nombre": "CARLOS ALBERTO CARDENAS BARON",
       "partido": "PARTIDO CONSERVADOR",
       "n_instrumentos": 2,
-      "shannon_norm": 0.0
+      "shannon_norm": 0.0,
+      "municipio": "VALDIVIA"
     },
     {
       "id": "05854-005",
       "nombre": "LUIS ENRIQUE ZEA ARENAS",
       "partido": "ALIANZA VERDE",
       "n_instrumentos": 1,
-      "shannon_norm": 0.0
+      "shannon_norm": 0.0,
+      "municipio": "VALDIVIA"
     },
     {
       "id": "05854-009",
       "nombre": "JOSE ELIECER MONSALVE BUSTAMANTE",
       "partido": "PARTIDO LIBERAL",
       "n_instrumentos": 1,
-      "shannon_norm": 0.0
+      "shannon_norm": 0.0,
+      "municipio": "VALDIVIA"
     },
     {
       "id": "ADMINISTRACION",
       "nombre": "",
       "partido": "ADMINISTRACION",
       "n_instrumentos": 74,
-      "shannon_norm": 0.9379
+      "shannon_norm": 0.9379,
+      "municipio": ""
     }
   ],
   "partidos": [
@@ -161,7 +186,7 @@
       "nombre": "ADMINISTRACION",
       "n_concejales": 1,
       "n_concejales_aptos": 1,
-      "cv_shannon": null,
+      "shannon_partido": 0.9378,
       "jaccard_intra": null,
       "perfil_tematico": {
         "Ambiente": 0.0135,
@@ -200,7 +225,7 @@
       "nombre": "AICO",
       "n_concejales": 1,
       "n_concejales_aptos": 1,
-      "cv_shannon": null,
+      "shannon_partido": 0.0,
       "jaccard_intra": null,
       "perfil_tematico": {
         "Desarrollo Rural": 1.0
@@ -210,7 +235,7 @@
       "nombre": "ALIANZA VERDE",
       "n_concejales": 2,
       "n_concejales_aptos": 2,
-      "cv_shannon": 1.4142,
+      "shannon_partido": 1.0,
       "jaccard_intra": 0.0,
       "perfil_tematico": {
         "Ambiente": 0.3333,
@@ -222,7 +247,7 @@
       "nombre": "PARTIDO ASI",
       "n_concejales": 1,
       "n_concejales_aptos": 1,
-      "cv_shannon": null,
+      "shannon_partido": 0.0,
       "jaccard_intra": null,
       "perfil_tematico": {
         "Desarrollo Rural": 1.0
@@ -232,7 +257,7 @@
       "nombre": "PARTIDO CENTRO DEMOCRATICO",
       "n_concejales": 1,
       "n_concejales_aptos": 1,
-      "cv_shannon": null,
+      "shannon_partido": 0.0,
       "jaccard_intra": null,
       "perfil_tematico": {
         "Desarrollo Rural": 1.0
@@ -242,7 +267,7 @@
       "nombre": "PARTIDO CONSERVADOR",
       "n_concejales": 3,
       "n_concejales_aptos": 3,
-      "cv_shannon": 1.7321,
+      "shannon_partido": 0.9206,
       "jaccard_intra": 0.2222,
       "perfil_tematico": {
         "Ambiente": 0.1667,
@@ -254,7 +279,7 @@
       "nombre": "PARTIDO DE LA U",
       "n_concejales": 1,
       "n_concejales_aptos": 1,
-      "cv_shannon": null,
+      "shannon_partido": 0.0,
       "jaccard_intra": null,
       "perfil_tematico": {
         "Festivales y Eventos": 1.0
@@ -264,7 +289,7 @@
       "nombre": "PARTIDO LIBERAL",
       "n_concejales": 2,
       "n_concejales_aptos": 2,
-      "cv_shannon": null,
+      "shannon_partido": 1.0,
       "jaccard_intra": 0.0,
       "perfil_tematico": {
         "Educacion ambiental": 0.5,
@@ -275,7 +300,7 @@
       "nombre": "PASION POR GUARNE",
       "n_concejales": 2,
       "n_concejales_aptos": 2,
-      "cv_shannon": 1.4142,
+      "shannon_partido": 0.865,
       "jaccard_intra": 0.3333,
       "perfil_tematico": {
         "Desarrollo Rural": 0.6,
@@ -468,11 +493,10 @@
   ],
   "excluidos_min_instrumentos": [],
   "veredicto": {
-    "umbral_cv": 0.3,
     "umbral_jaccard": 0.5,
     "partidos_apoyan_H1": 0,
-    "partidos_apoyan_H2": 3,
-    "partidos_ambiguos": 6,
+    "partidos_apoyan_H2": 4,
+    "partidos_ambiguos": 5,
     "interpretacion": "H2 apoyada"
   }
 }

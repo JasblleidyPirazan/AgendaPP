@@ -3,7 +3,7 @@ import { renderResumen } from "/src/views/resumen.js";
 import { renderInstrumentos } from "/src/views/instrumentos.js";
 import { renderPartidos } from "/src/views/partidos.js";
 import { renderShannon } from "/src/views/shannon.js";
-import { renderCV } from "/src/views/cv.js";
+import { renderShannonPartido } from "/src/views/shannon_partido.js";
 import { renderJaccard } from "/src/views/jaccard.js";
 import { renderCorr } from "/src/views/correlaciones.js";
 import { renderAuditoria } from "/src/views/auditoria.js";
@@ -14,7 +14,7 @@ const VIEWS = {
   instrumentos: renderInstrumentos,
   partidos: renderPartidos,
   shannon: renderShannon,
-  cv: renderCV,
+  shannon_partido: renderShannonPartido,
   jaccard: renderJaccard,
   corr: renderCorr,
   auditoria: renderAuditoria,
@@ -136,7 +136,86 @@ async function main() {
     setTimeout(() => { estado.textContent = ""; }, 5000);
   });
 
+  configurarFiltros(ctx);
   activarVista("resumen", ctx);
+}
+
+const DEFAULT_ROLES = ["Proponente", "Ponente", "Coordinador"];
+
+// Construye la barra de filtros (roles + municipios) y recalcula las métricas
+// en vivo desde la data cruda del endpoint. Sin endpoint, la barra queda
+// informativa porque metrics.json es precalculado y no se puede refiltrar.
+function configurarFiltros(ctx) {
+  const barra = document.getElementById("barra-filtros");
+  const contRoles = document.getElementById("filtro-roles");
+  const contMun = document.getElementById("filtro-municipios");
+  const estado = document.getElementById("filtros-estado");
+  barra.hidden = false;
+
+  const tieneRaw = ctx.raw && Array.isArray(ctx.raw.instrumentos) && ctx.raw.instrumentos.length;
+  if (!tieneRaw) {
+    barra.classList.add("deshabilitado");
+    contRoles.innerHTML = "";
+    contMun.innerHTML = "";
+    estado.textContent = "Filtros en vivo: requieren el endpoint Apps Script (configura appsScriptUrl en config.json).";
+    return;
+  }
+
+  const rolesDisp = Array.from(new Set(
+    ctx.raw.instrumentos.map((r) => String(r.Rol || "").trim()).filter(Boolean)
+  )).sort((a, b) => a.localeCompare(b, "es"));
+
+  const munDisp = (ctx.raw.municipios || [])
+    .map((m) => ({ dane: String(m.dane || "").padStart(5, "0"), municipio: m.municipio || m.dane }))
+    .filter((m) => m.dane && m.dane !== "00000")
+    .sort((a, b) => String(a.municipio).localeCompare(String(b.municipio), "es"));
+
+  const selRoles = new Set(rolesDisp.filter((r) => DEFAULT_ROLES.some((d) => d.toLowerCase() === r.toLowerCase())));
+  if (selRoles.size === 0) rolesDisp.forEach((r) => selRoles.add(r));
+  const selMun = new Set(munDisp.map((m) => m.dane));
+
+  function chip(label, checked, onToggle) {
+    const wrap = document.createElement("label");
+    wrap.className = "chip";
+    wrap.innerHTML = `<input type="checkbox" ${checked ? "checked" : ""}><span></span>`;
+    wrap.querySelector("span").textContent = label;
+    wrap.querySelector("input").addEventListener("change", (e) => onToggle(e.target.checked));
+    return wrap;
+  }
+
+  contRoles.innerHTML = "";
+  rolesDisp.forEach((r) =>
+    contRoles.appendChild(chip(r, selRoles.has(r), (on) => { on ? selRoles.add(r) : selRoles.delete(r); recompute(); }))
+  );
+  contMun.innerHTML = "";
+  munDisp.forEach((m) =>
+    contMun.appendChild(chip(m.municipio, selMun.has(m.dane), (on) => { on ? selMun.add(m.dane) : selMun.delete(m.dane); recompute(); }))
+  );
+
+  let pendiente = null;
+  function recompute() {
+    estado.textContent = "Recalculando…";
+    clearTimeout(pendiente);
+    pendiente = setTimeout(() => {
+      try {
+        ctx.metrics = construirMetrics(ctx.raw.instrumentos, ctx.raw.concejales, {
+          roles: Array.from(selRoles),
+          municipios: Array.from(selMun),
+        });
+        refrescarTimestamp(ctx);
+        const vista = document.querySelector("nav button.active")?.dataset.view || "resumen";
+        activarVista(vista, ctx);
+        estado.textContent = `✓ ${selRoles.size} rol(es), ${selMun.size}/${munDisp.length} municipio(s) · ${ctx.metrics.concejales.length} concejales`;
+      } catch (err) {
+        estado.textContent = `✗ ${err.message}`;
+        console.error(err);
+      }
+    }, 30);
+  }
+
+  // Recalcula una vez al cargar para reflejar el set de roles por defecto
+  // (incluye Coordinador) sobre la data en vivo, aunque metrics.json sea viejo.
+  recompute();
 }
 
 function refrescarTimestamp(ctx) {
