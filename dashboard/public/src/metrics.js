@@ -4,7 +4,7 @@
 
 const UMBRAL_CV = 0.3;
 const UMBRAL_JACCARD = 0.5;
-const ROL_DEFAULT = ["Proponente"];
+const ROL_DEFAULT = ["Proponente", "Ponente"];
 const COL_TEMA_DEFAULT = "Tematica";
 const MIN_INSTRUMENTOS_DEFAULT = 1;
 
