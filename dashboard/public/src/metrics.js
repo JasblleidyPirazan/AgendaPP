@@ -2,9 +2,8 @@
 // Permite recalcular metrics.json en el navegador desde la data cruda del
 // endpoint Apps Script, sin necesidad de Python ni rebuild de Netlify.
 
-const UMBRAL_CV = 0.3;
 const UMBRAL_JACCARD = 0.5;
-const ROL_DEFAULT = ["Proponente", "Ponente"];
+const ROL_DEFAULT = ["Proponente", "Ponente", "Coordinador"];
 const COL_TEMA_DEFAULT = "Tematica";
 const MIN_INSTRUMENTOS_DEFAULT = 1;
 
@@ -75,6 +74,8 @@ export function construirMetrics(rawInstrumentos, rawConcejales, opciones = {}) 
   const roles = (opciones.roles || ROL_DEFAULT).map((r) => r.trim().toLowerCase());
   const colTema = opciones.colTema || COL_TEMA_DEFAULT;
   const minInst = opciones.minInstrumentos ?? MIN_INSTRUMENTOS_DEFAULT;
+  // Filtro de municipios: set de codigos DANE (5 digitos) o nombres en minuscula. Vacio = todos.
+  const munSel = new Set((opciones.municipios || []).map((m) => String(m).trim().toLowerCase()).filter(Boolean));
 
   // map ID_Concejal -> nombre
   const nombres = new Map();
@@ -90,10 +91,35 @@ export function construirMetrics(rawInstrumentos, rawConcejales, opciones = {}) 
     return r;
   });
 
+  // Mapa DANE -> municipio y lista de municipios disponibles (antes de filtrar)
+  const daneAMunicipio = new Map();
+  for (const r of inst) {
+    const dane = String(r["Codigo DANE"] ?? "").trim().padStart(5, "0");
+    if (dane && dane !== "00000" && !daneAMunicipio.has(dane)) {
+      daneAMunicipio.set(dane, String(r.municipio_origen || r.municipio || "").trim());
+    }
+  }
+  const municipiosDisponibles = Array.from(daneAMunicipio.entries())
+    .map(([dane, municipio]) => ({ dane, municipio }))
+    .sort((a, b) => String(a.municipio || a.dane).localeCompare(String(b.municipio || b.dane), "es"));
+
+  const municipioDe = (cid) => {
+    const s = String(cid);
+    const dane = s.includes("-") ? s.split("-")[0].padStart(5, "0") : "";
+    return daneAMunicipio.get(dane) || "";
+  };
+
+  // Filtro de municipios (por DANE o nombre)
+  const instFiltrado = munSel.size === 0 ? inst : inst.filter((r) => {
+    const dane = String(r["Codigo DANE"] ?? "").trim().padStart(5, "0");
+    const nombre = String(r.municipio_origen || r.municipio || "").trim().toLowerCase();
+    return munSel.has(dane) || munSel.has(nombre);
+  });
+
   // Dedup (id_instrumento, Rol, ID_Concejal)
   const vistosDedup = new Set();
   const dedup = [];
-  for (const r of inst) {
+  for (const r of instFiltrado) {
     const k = `${r.id_instrumento}|${r.Rol}|${r.ID_Concejal}`;
     if (vistosDedup.has(k)) continue;
     vistosDedup.add(k);
@@ -154,6 +180,7 @@ export function construirMetrics(rawInstrumentos, rawConcejales, opciones = {}) 
       id: cid,
       nombre: nombres.get(cid) || "",
       partido: partidoPorConcejal.get(cid) || null,
+      municipio: municipioDe(cid),
       n_instrumentos: n,
       shannon_norm: round(h, 4),
     });
@@ -181,9 +208,6 @@ export function construirMetrics(rawInstrumentos, rawConcejales, opciones = {}) 
     const aptos = conN.filter((x) => x.n >= minInst).map((x) => x.cid);
     conN.filter((x) => x.n < minInst).forEach((x) => excluidos.push({ id: x.cid, partido }));
 
-    const hs = aptos.map((c) => hPorConcejal.get(c));
-    const cv = hs.length >= 2 ? cvShannon(hs) : NaN;
-
     // binary matrix para Jaccard
     const binaria = aptos.map((c) => {
       const m = matriz.get(c);
@@ -207,11 +231,14 @@ export function construirMetrics(rawInstrumentos, rawConcejales, opciones = {}) 
     }
     perfiles.set(partido, perfilObj);
 
+    // Shannon del bloque: diversidad de la agenda agregada del partido.
+    const hPartido = total > 0 ? shannonNorm(Array.from(sumaTemas.values())) : NaN;
+
     partidos_out.push({
       nombre: partido,
       n_concejales: validos.length,
       n_concejales_aptos: aptos.length,
-      cv_shannon: isNaN(cv) ? null : round(cv, 4),
+      shannon_partido: isNaN(hPartido) ? null : round(hPartido, 4),
       jaccard_intra: isNaN(j) ? null : round(j, 4),
       perfil_tematico: Object.fromEntries(Object.entries(perfilObj).filter(([_, v]) => v > 0)),
     });
@@ -230,18 +257,23 @@ export function construirMetrics(rawInstrumentos, rawConcejales, opciones = {}) 
     }
   }
 
-  // Veredicto
+  // Veredicto segun convergencia tematica (Jaccard): J >= umbral => H1, J < umbral => H2.
   let h1 = 0, h2 = 0, neutros = 0;
   for (const p of partidos_out) {
-    if (p.cv_shannon === null || p.jaccard_intra === null) { neutros++; continue; }
-    if (p.cv_shannon <= UMBRAL_CV && p.jaccard_intra >= UMBRAL_JACCARD) h1++;
-    else if (p.cv_shannon > UMBRAL_CV && p.jaccard_intra < UMBRAL_JACCARD) h2++;
-    else neutros++;
+    if (p.jaccard_intra === null) neutros++;
+    else if (p.jaccard_intra >= UMBRAL_JACCARD) h1++;
+    else h2++;
   }
 
   return {
     generadoEn: new Date().toISOString(),
-    parametros: { rol: opciones.roles || ROL_DEFAULT, tema: colTema, min_instrumentos: minInst },
+    parametros: {
+      rol: opciones.roles || ROL_DEFAULT,
+      tema: colTema,
+      min_instrumentos: minInst,
+      municipios: (opciones.municipios && opciones.municipios.length) ? opciones.municipios : "todos",
+    },
+    municipios: municipiosDisponibles,
     universo_temas: universoTemas,
     universo_sectores: universoSectores,
     n_instrumentos_unicos_incluidos: nUnicosIncluidos,
@@ -251,7 +283,6 @@ export function construirMetrics(rawInstrumentos, rawConcejales, opciones = {}) 
     interpartido,
     excluidos_min_instrumentos: excluidos,
     veredicto: {
-      umbral_cv: UMBRAL_CV,
       umbral_jaccard: UMBRAL_JACCARD,
       partidos_apoyan_H1: h1,
       partidos_apoyan_H2: h2,

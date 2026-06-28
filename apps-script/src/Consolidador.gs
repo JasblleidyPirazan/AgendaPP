@@ -18,6 +18,24 @@ function consolidar() {
     throw new Error('Config.gs#SHEETS_FUENTE esta vacio. Agrega al menos un Sheet fuente.');
   }
 
+  // Validacion de configuracion: fileId o DANE repetidos entre fuentes.
+  // Un fileId repetido hace que dos municipios lean el MISMO Sheet (doble conteo);
+  // un DANE repetido colisiona los id_instrumento. Ambos son errores graves.
+  const vistoFile = {};
+  const vistoDane = {};
+  SHEETS_FUENTE.forEach(function (src) {
+    if (vistoFile[src.fileId]) {
+      validaciones.push({ nivel: 'error', municipio: src.municipio, mensaje: 'fileId duplicado con ' + vistoFile[src.fileId] + ': leen el mismo Sheet' });
+    } else {
+      vistoFile[src.fileId] = src.municipio;
+    }
+    if (vistoDane[src.dane]) {
+      validaciones.push({ nivel: 'error', municipio: src.municipio, mensaje: 'DANE ' + src.dane + ' duplicado con ' + vistoDane[src.dane] });
+    } else {
+      vistoDane[src.dane] = src.municipio;
+    }
+  });
+
   SHEETS_FUENTE.forEach(function (src) {
     let ss;
     try {

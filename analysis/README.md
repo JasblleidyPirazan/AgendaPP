@@ -35,8 +35,9 @@ python build_metrics.py --xlsx ../Guarne_DILIGENCIADO.xlsx
 
 # Parámetros opcionales
 python build_metrics.py --xlsx ../Guarne_DILIGENCIADO.xlsx \
-  --rol "Proponente,Ponente" \
+  --rol "Proponente,Ponente,Coordinador" \
   --tema Sector \
+  --municipios "LA CEJA,GUARNE" \
   --min-instrumentos 5
 ```
 

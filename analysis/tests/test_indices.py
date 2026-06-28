@@ -18,6 +18,7 @@ from agendapp.indices import (
 from agendapp.transform import (
     binarizar,
     filtrar_min_instrumentos,
+    filtrar_municipios,
     matriz_concejal_tema,
     perfil_partido,
 )
@@ -190,3 +191,28 @@ class TestMatriz:
         assert "C" in excluidos
         assert "A" not in excluidos
         assert "B" not in excluidos
+
+
+class TestFiltrarMunicipios:
+    @pytest.fixture
+    def df_mun(self):
+        return pd.DataFrame({
+            "Codigo DANE": ["05318", "05318", "05376", "05101"],
+            "municipio_origen": ["GUARNE", "GUARNE", "LA CEJA", "CIUDAD BOLIVAR"],
+            "ID_Concejal": ["05318-001", "05318-002", "05376-001", "05101-001"],
+        })
+
+    def test_sin_filtro_devuelve_todo(self, df_mun):
+        assert len(filtrar_municipios(df_mun, [])) == 4
+
+    def test_filtra_por_dane(self, df_mun):
+        out = filtrar_municipios(df_mun, ["05376"])
+        assert out["ID_Concejal"].tolist() == ["05376-001"]
+
+    def test_filtra_por_nombre_case_insensitive(self, df_mun):
+        out = filtrar_municipios(df_mun, ["la ceja"])
+        assert out["ID_Concejal"].tolist() == ["05376-001"]
+
+    def test_filtra_multiples(self, df_mun):
+        out = filtrar_municipios(df_mun, ["GUARNE", "05101"])
+        assert set(out["municipio_origen"]) == {"GUARNE", "CIUDAD BOLIVAR"}

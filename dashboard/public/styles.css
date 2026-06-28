@@ -203,3 +203,51 @@ footer a { color: var(--accent); }
 
 th.sortable { cursor: pointer; user-select: none; }
 th.sortable:hover { background: #eef0fb; }
+
+/* Barra de filtros (roles + municipios) */
+.barra-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.25rem;
+  padding: 0.6rem 0;
+  margin-top: 0.75rem;
+}
+
+.barra-filtros.deshabilitado { opacity: 0.7; }
+
+.filtros-titulo {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.filtro-grupo { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+.filtro-label { font-size: 0.85rem; font-weight: 600; color: var(--fg); }
+.filtro-chips { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  background: white;
+  user-select: none;
+}
+
+.chip:has(input:checked) {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.chip input { margin: 0; cursor: pointer; }
+
+.filtros-estado { font-size: 0.8rem; color: var(--muted); font-style: italic; }

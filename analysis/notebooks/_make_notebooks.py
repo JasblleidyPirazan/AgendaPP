@@ -70,7 +70,7 @@ NB_DEFINITIONS = {
         md("## Partidos presentes (revisar si hay duplicados por tildes/mayúsculas)\n"),
         code("df_inst['Partido / Movimiento'].value_counts().head(30)\n"),
         md("## Conteo de instrumentos por concejal (detecta huérfanos y bajo volumen)\n"),
-        code("conteo = df_inst[df_inst['Rol'].isin(['Proponente', 'Ponente'])]['ID_Concejal'].value_counts()\n"
+        code("conteo = df_inst[df_inst['Rol'].isin(['Proponente', 'Ponente', 'Coordinador'])]['ID_Concejal'].value_counts()\n"
              "print('Concejales con < 3 instrumentos como autor (Proponente/Ponente):')\n"
              "conteo[conteo < 3]\n"),
     ],
@@ -78,7 +78,7 @@ NB_DEFINITIONS = {
         md("# 02 — Diversidad temática individual (Shannon normalizado)\n\n"
            "H ∈ [0, 1]: 0 = concejal muy especializado, 1 = generalista perfecto, 0.5 = moderado.\n"),
         code(COMMON_HEADER),
-        code("M = matriz_concejal_tema(df_inst, col_tema='Tematica', roles=('Proponente', 'Ponente'))\n"
+        code("M = matriz_concejal_tema(df_inst, col_tema='Tematica', roles=('Proponente', 'Ponente', 'Coordinador'))\n"
              "h = M.apply(shannon_norm, axis=1).rename('H')\n"
              "h.describe()\n"),
         md("## Histograma\n"),
@@ -89,27 +89,32 @@ NB_DEFINITIONS = {
              "    h.sort_values(ascending=False).head(10).rename('Más generalistas'),\n"
              "], axis=1)\n"),
     ],
-    "03_cv_intrapartidista.ipynb": [
-        md("# 03 — CV de Shannon intra-partido\n\n"
-           "Umbral AgendaPP: **CV ≤ 0.3 → uniformidad (H1a)**, **CV > 0.3 → autonomía individual (H2a)**.\n"),
+    "03_shannon_partido.ipynb": [
+        md("# 03 — Shannon por partido (diversidad del bloque)\n\n"
+           "Shannon normalizado sobre el **perfil agregado** de cada partido: 0 = agenda "
+           "focalizada en pocos temas, 1 = agenda repartida de forma amplia.\n"),
         code(COMMON_HEADER),
-        code("M = matriz_concejal_tema(df_inst, col_tema='Tematica', roles=('Proponente', 'Ponente'))\n"
-             "h = M.apply(shannon_norm, axis=1)\n"
-             "asign = (df_inst[df_inst['Rol'].isin(['Proponente', 'Ponente'])]\n"
+        code("M = matriz_concejal_tema(df_inst, col_tema='Tematica', roles=('Proponente', 'Ponente', 'Coordinador'))\n"
+             "asign = (df_inst[df_inst['Rol'].isin(['Proponente', 'Ponente', 'Coordinador'])]\n"
              "    .groupby('ID_Concejal')['Partido / Movimiento']\n"
              "    .agg(lambda s: s.value_counts().idxmax()))\n"
-             "tabla = pd.DataFrame({'H': h, 'partido': asign})\n"
-             "cv = tabla.groupby('partido')['H'].apply(lambda x: cv_shannon(x.values))\n"
-             "cv.dropna()\n"),
-        md("## Barras (verde = uniformidad H1a)\n"),
-        code("viz.barras_cv_por_partido(cv.dropna())\n"),
+             "filas = []\n"
+             "for partido, cids in asign.groupby(asign).groups.items():\n"
+             "    sub = M.loc[[c for c in cids if c in M.index]]\n"
+             "    if sub.empty: continue\n"
+             "    perfil = perfil_partido(sub)\n"
+             "    filas.append({'partido': partido, 'n': sub.shape[0], 'shannon_partido': shannon_norm(perfil.values)})\n"
+             "h_df = pd.DataFrame(filas).set_index('partido')\n"
+             "h_df.sort_values('shannon_partido', ascending=False)\n"),
+        md("## Barras\n"),
+        code("viz.barras_shannon_por_partido(h_df['shannon_partido'])\n"),
     ],
     "04_jaccard_partido.ipynb": [
         md("# 04 — Jaccard intra-partido\n\n"
            "Umbral: **J ≥ 0.5 → alta convergencia temática**, **J < 0.5 → baja convergencia**.\n"),
         code(COMMON_HEADER),
-        code("M = matriz_concejal_tema(df_inst, col_tema='Tematica', roles=('Proponente', 'Ponente'))\n"
-             "asign = (df_inst[df_inst['Rol'].isin(['Proponente', 'Ponente'])]\n"
+        code("M = matriz_concejal_tema(df_inst, col_tema='Tematica', roles=('Proponente', 'Ponente', 'Coordinador'))\n"
+             "asign = (df_inst[df_inst['Rol'].isin(['Proponente', 'Ponente', 'Coordinador'])]\n"
              "    .groupby('ID_Concejal')['Partido / Movimiento']\n"
              "    .agg(lambda s: s.value_counts().idxmax()))\n"
              "filas = []\n"
@@ -126,8 +131,8 @@ NB_DEFINITIONS = {
         md("# 05 — Correlaciones inter-partido (Pearson)\n\n"
            "Heatmap de similitud entre perfiles temáticos agregados de cada partido.\n"),
         code(COMMON_HEADER),
-        code("M = matriz_concejal_tema(df_inst, col_tema='Tematica', roles=('Proponente', 'Ponente'))\n"
-             "asign = (df_inst[df_inst['Rol'].isin(['Proponente', 'Ponente'])]\n"
+        code("M = matriz_concejal_tema(df_inst, col_tema='Tematica', roles=('Proponente', 'Ponente', 'Coordinador'))\n"
+             "asign = (df_inst[df_inst['Rol'].isin(['Proponente', 'Ponente', 'Coordinador'])]\n"
              "    .groupby('ID_Concejal')['Partido / Movimiento']\n"
              "    .agg(lambda s: s.value_counts().idxmax()))\n"
              "universo = M.columns.tolist()\n"

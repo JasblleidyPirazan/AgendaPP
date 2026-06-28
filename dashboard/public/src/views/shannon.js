@@ -29,6 +29,7 @@ export function renderShannon(root, ctx) {
           <th data-col="id">ID</th>
           <th data-col="nombre">Nombre</th>
           <th data-col="partido">Partido</th>
+          <th data-col="municipio">Municipio</th>
           <th data-col="n_instrumentos">N° instrumentos</th>
           <th data-col="shannon_norm">H normalizado</th>
         </tr>
@@ -67,6 +68,7 @@ export function renderShannon(root, ctx) {
         <td>${c.id}</td>
         <td>${c.nombre || "—"}</td>
         <td>${c.partido ?? "—"}</td>
+        <td>${c.municipio || "—"}</td>
         <td>${c.n_instrumentos}</td>
         <td>${c.shannon_norm.toFixed(3)}</td>
       </tr>

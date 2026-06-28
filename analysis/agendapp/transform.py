@@ -7,9 +7,25 @@ from typing import Iterable
 import numpy as np
 import pandas as pd
 
-ROLES_DEFAULT = ("Proponente", "Ponente")
+ROLES_DEFAULT = ("Proponente", "Ponente", "Coordinador")
 COL_TEMA_DEFAULT = "Tematica"
 MIN_INSTRUMENTOS_DEFAULT = 1
+
+
+def filtrar_municipios(df: pd.DataFrame, municipios: Iterable[str]) -> pd.DataFrame:
+    """Filtra filas por municipio. Acepta nombres (col 'municipio_origen'/'municipio')
+    o codigos DANE (col 'Codigo DANE'), case-insensitive. Lista vacia = sin filtro."""
+    sel = {str(m).strip().lower() for m in municipios if str(m).strip()}
+    if not sel:
+        return df
+    mask = pd.Series(False, index=df.index)
+    name_col = next((c for c in ("municipio_origen", "municipio") if c in df.columns), None)
+    if name_col:
+        mask |= df[name_col].astype(str).str.strip().str.lower().isin(sel)
+    if "Codigo DANE" in df.columns:
+        danes = {s.zfill(5) for s in sel}
+        mask |= df["Codigo DANE"].astype(str).str.strip().str.zfill(5).isin(danes)
+    return df[mask]
 
 
 def filtrar_instrumentos(
