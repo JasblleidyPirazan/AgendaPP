@@ -11,8 +11,10 @@
  *   En produccion guardarlo en PropertiesService (scriptProperties) en vez de aqui.
  */
 const SHEETS_FUENTE = [
-  { municipio: 'GUARNE',   dane: '05318', fileId: '1CGfkYxMWpIjjsIzKiz5lPOAxz4ql0TGIT3CJTH4x8Dw' },
-  { municipio: 'VALDIVIA', dane: '05854', fileId: '1sbU9BuvPRusMBtRzX8WEHjWnkzkTISar8X-on22RJh8' },
+  { municipio: 'GUARNE',         dane: '05318', fileId: '1CGfkYxMWpIjjsIzKiz5lPOAxz4ql0TGIT3CJTH4x8Dw' },
+  { municipio: 'LA CEJA',        dane: '05376', fileId: '1fFMYXntKdSfqKFFBRs1nVh-Kh46KTkLiwgzXeejfHSc' },
+  { municipio: 'CIUDAD BOLIVAR', dane: '05101', fileId: '1b40HESqOmltVneOEWTvh1jOtVwIO7EkYFI7D2MzkU_g' },
+  { municipio: 'VALDIVIA',       dane: '05854', fileId: '1sbU9BuvPRusMBtRzX8WEHjWnkzkTISar8X-on22RJh8' },
 ];
 
 const HOJAS = Object.freeze({
