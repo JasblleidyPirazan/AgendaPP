@@ -70,8 +70,19 @@ function consolidar() {
       }
     });
 
-    const instrumentosMun = leerTabla_(ss, HOJAS.INSTRUMENTOS)
-      .filter(function (r) { return r.Identificador; });
+    var instrumentosMun = leerTabla_(ss, HOJAS.INSTRUMENTOS);
+    instrumentosMun.forEach(function (r) {
+      // Identificador: si la hoja lo trae vacio (plantilla v2), derivarlo de
+      // Numero(-Anio). La plantilla vieja ya lo trae combinado ('1-2012').
+      var ident = String(r.Identificador == null ? '' : r.Identificador).trim();
+      if (!ident) {
+        var num = String(r.Numero == null ? '' : r.Numero).trim().replace(/\.0+$/, '');
+        var anio = String(r.Anio == null ? '' : r.Anio).trim().replace(/\.0+$/, '');
+        if (num) ident = anio ? (num + '-' + anio) : num;
+      }
+      r.Identificador = ident;
+    });
+    instrumentosMun = instrumentosMun.filter(function (r) { return r.Identificador; });
     instrumentosMun.forEach(function (r) {
       r.municipio_origen = src.municipio;
       // Codigo DANE confiable desde la config (la hoja puede traerlo vacio o sin ceros).
@@ -165,7 +176,7 @@ function idConcejalCanonico_(raw, dane) {
   var s = String(raw == null ? '' : raw).trim();
   if (!s) return '';
   if (/^\d+\.0+$/.test(s)) s = s.replace(/\.0+$/, ''); // "1.0" -> "1"
-  if (/^\d{5}-/.test(s)) return s;                      // ya viene "DANE-..."
+  if (/^\d{4,5}-/.test(s)) return s;                    // ya viene "DANE-..." (4 o 5 digitos)
   if (s.toUpperCase() === 'ADMINISTRACION') return 'ADMINISTRACION';
   return String(dane) + '-' + s;
 }
