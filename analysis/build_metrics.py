@@ -107,7 +107,9 @@ def construir_metrics(df: pd.DataFrame, nombres: dict, args) -> dict:
     # Universo global de temas (solo entre los Incluir=Si y con tema poblado)
     df_filt = df.copy()
     if "Incluir en analisis" in df_filt.columns:
-        df_filt = df_filt[df_filt["Incluir en analisis"].astype(str).str.strip().str.lower().eq("si")]
+        # Incluir todo salvo lo marcado "No" (vacio = incluido). Ver transform.filtrar_instrumentos.
+        _inc = df_filt["Incluir en analisis"].astype(str).str.strip().str.lower()
+        df_filt = df_filt[_inc != "no"]
     df_filt = df_filt.dropna(subset=[col_tema])
     df_filt = df_filt[df_filt[col_tema].astype(str).str.strip() != ""]
     universo_temas = sorted(df_filt[col_tema].astype(str).str.strip().unique().tolist())

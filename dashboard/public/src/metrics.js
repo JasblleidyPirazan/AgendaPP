@@ -126,8 +126,9 @@ export function construirMetrics(rawInstrumentos, rawConcejales, opciones = {}) 
     dedup.push(r);
   }
 
-  // Solo incluidos para universos
-  const incluidos = dedup.filter((r) => String(r["Incluir en analisis"] ?? "").toLowerCase() === "si");
+  // Incluir todo salvo lo marcado "No" (vacio = incluido). Cubre plantilla v2
+  // (inclusion en blanco) y vieja ("Si"). Solo "No" excluye.
+  const incluidos = dedup.filter((r) => String(r["Incluir en analisis"] ?? "").trim().toLowerCase() !== "no");
   const universoTemas = sortedUnique(incluidos.map((r) => (r[colTema] || "").trim()).filter(Boolean));
   const universoSectores = sortedUnique(incluidos.map((r) => (r.Sector || "").trim()).filter(Boolean));
   const nUnicosIncluidos = new Set(incluidos.map((r) => r.id_instrumento)).size;

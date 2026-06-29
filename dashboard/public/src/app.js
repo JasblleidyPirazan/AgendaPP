@@ -7,6 +7,7 @@ import { renderShannonPartido } from "/src/views/shannon_partido.js";
 import { renderJaccard } from "/src/views/jaccard.js";
 import { renderCorr } from "/src/views/correlaciones.js";
 import { renderComparar } from "/src/views/comparar.js";
+import { renderCamaleones } from "/src/views/camaleones.js";
 import { renderAuditoria } from "/src/views/auditoria.js";
 import { construirMetrics } from "/src/metrics.js";
 
@@ -19,6 +20,7 @@ const VIEWS = {
   jaccard: renderJaccard,
   corr: renderCorr,
   comparar: renderComparar,
+  camaleones: renderCamaleones,
   auditoria: renderAuditoria,
 };
 
