@@ -11,7 +11,7 @@
 
 - **Unidad de observación**: instrumento legislativo (Acuerdo, Proyecto de Acuerdo, Política Pública, etc.) — fila `Identificador` en hoja `Instrumentos`.
 - **Atribución a actores**: cada instrumento puede tener varias filas con distintos `Rol` (Proponente, Ponente, Coordinador, ...).
-- **Filtro inicial**: `Incluir en analisis == "Si"`.
+- **Filtro inicial**: se incluye toda fila **salvo** las marcadas `Incluir en analisis == "No"` (vacío = incluido). La plantilla v2 deja en blanco lo que entra y marca solo lo excluido con "No"; la plantilla vieja usa "Si". Ambas funcionan con esta regla.
 - **Atribución temática por defecto**: `Rol ∈ {Proponente, Ponente, Coordinador}` (autoría, ponencia y coordinación). Cambiable con `--rol` (o con los chips de rol en el dashboard).
 - **Filtro por municipio**: opcional, con `--municipios` (nombres o códigos DANE) o los chips de municipio del dashboard. Vacío = todos. Permite contrastar si la diferenciación temática varía entre municipios.
 - **Variable temática por defecto**: `Tematica` OPPAM. Alternativas: `Sector` (agregación más alta) o `Tema segun Concejo` (texto libre, no estandarizado — solo para auditoría).

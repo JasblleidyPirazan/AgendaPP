@@ -39,7 +39,11 @@ def filtrar_instrumentos(
     """
     out = df.copy()
     if solo_incluidos and "Incluir en analisis" in out.columns:
-        out = out[out["Incluir en analisis"].astype(str).str.strip().str.lower().eq("si")]
+        # Incluir todo salvo lo marcado explicitamente "No" (vacio = incluido).
+        # La plantilla v2 deja en blanco las filas a incluir y marca solo las
+        # excluidas con "No"; la vieja usa "Si". Esta regla cubre ambas.
+        inc = out["Incluir en analisis"].astype(str).str.strip().str.lower()
+        out = out[inc != "no"]
     if roles and "Rol" in out.columns:
         roles_norm = {r.strip().lower() for r in roles}
         out = out[out["Rol"].astype(str).str.strip().str.lower().isin(roles_norm)]
