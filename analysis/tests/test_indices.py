@@ -17,6 +17,8 @@ from agendapp.indices import (
 )
 from agendapp.transform import (
     binarizar,
+    canonicalizar_serie,
+    clave_norm,
     filtrar_min_instrumentos,
     filtrar_municipios,
     matriz_concejal_tema,
@@ -216,3 +218,28 @@ class TestFiltrarMunicipios:
     def test_filtra_multiples(self, df_mun):
         out = filtrar_municipios(df_mun, ["GUARNE", "05101"])
         assert set(out["municipio_origen"]) == {"GUARNE", "CIUDAD BOLIVAR"}
+
+
+class TestCanonicalizar:
+    def test_clave_norm_ignora_caso_y_tildes(self):
+        assert clave_norm("Ciencia e innovacion") == clave_norm("Ciencia e Innovacion")
+        assert clave_norm("Promoción") == clave_norm("Promocion")
+        assert clave_norm("  a   b ") == "A B"
+
+    def test_canonicalizar_une_variantes(self):
+        s = pd.Series([
+            "Seguridad, Paz y No violencia",
+            "Seguridad, Paz y No Violencia",
+            "Ciencia e innovacion", "Ciencia e innovacion", "Ciencia e Innovacion",
+        ])
+        out = canonicalizar_serie(s)
+        # Las 5 filas colapsan a 2 categorias distintas
+        assert out.nunique() == 2
+        # La variante mas frecuente gana como etiqueta ("innovacion" aparece 2 veces)
+        assert (out == "Ciencia e innovacion").sum() == 3
+
+    def test_canonicalizar_respeta_vacios(self):
+        s = pd.Series(["Salud", "", "salud"])
+        out = canonicalizar_serie(s)
+        assert out.iloc[1] == ""
+        assert out.iloc[0] == out.iloc[2]

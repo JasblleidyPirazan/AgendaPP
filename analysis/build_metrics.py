@@ -33,6 +33,8 @@ from agendapp.indices import (
 from agendapp.io import fetch_endpoint, load_xlsx_municipio
 from agendapp.transform import (
     binarizar,
+    canonicalizar_serie,
+    clave_norm,
     filtrar_min_instrumentos,
     filtrar_municipios,
     matriz_concejal_tema,
@@ -88,6 +90,22 @@ def construir_metrics(df: pd.DataFrame, nombres: dict, args) -> dict:
     if clasif_filtro and "Clasificacion legal" in df.columns:
         sel = {c.lower() for c in clasif_filtro}
         df = df[df["Clasificacion legal"].astype(str).str.strip().str.lower().isin(sel)]
+
+    df = df.copy()
+
+    # Excluir ADMINISTRACION (iniciativas del ejecutivo) de todos los conteos.
+    es_admin = pd.Series(False, index=df.index)
+    if "Partido / Movimiento" in df.columns:
+        es_admin |= df["Partido / Movimiento"].map(clave_norm).str.startswith("ADMINISTRAC")
+    if "ID_Concejal" in df.columns:
+        es_admin |= df["ID_Concejal"].map(clave_norm).str.startswith("ADMINISTRAC")
+    df = df[~es_admin]
+
+    # Canonizar categorias para que variantes por mayusculas/tildes no fragmenten.
+    if col_tema in df.columns:
+        df[col_tema] = canonicalizar_serie(df[col_tema])
+    if "Sector" in df.columns:
+        df["Sector"] = canonicalizar_serie(df["Sector"])
 
     # Mapa DANE -> nombre de municipio (para etiquetar concejales y listar disponibles)
     dane_a_municipio: dict[str, str] = {}
