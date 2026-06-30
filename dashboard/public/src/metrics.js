@@ -76,6 +76,9 @@ export function construirMetrics(rawInstrumentos, rawConcejales, opciones = {}) 
   const minInst = opciones.minInstrumentos ?? MIN_INSTRUMENTOS_DEFAULT;
   // Filtro de municipios: set de codigos DANE (5 digitos) o nombres en minuscula. Vacio = todos.
   const munSel = new Set((opciones.municipios || []).map((m) => String(m).trim().toLowerCase()).filter(Boolean));
+  // Filtro de clasificacion legal (Acuerdo / Proyecto de Acuerdo / ...). Vacio = todas.
+  // El "" representa filas sin clasificacion (se conserva, no se filtra).
+  const claseSel = new Set((opciones.clasificaciones || []).map((c) => String(c).trim().toLowerCase()));
 
   // map ID_Concejal -> nombre
   const nombres = new Map();
@@ -109,12 +112,15 @@ export function construirMetrics(rawInstrumentos, rawConcejales, opciones = {}) 
     return daneAMunicipio.get(dane) || "";
   };
 
-  // Filtro de municipios (por DANE o nombre)
-  const instFiltrado = munSel.size === 0 ? inst : inst.filter((r) => {
+  // Filtro de municipios (por DANE o nombre) + clasificacion legal
+  const pasaMun = (r) => {
+    if (munSel.size === 0) return true;
     const dane = String(r["Codigo DANE"] ?? "").trim().padStart(5, "0");
     const nombre = String(r.municipio_origen || r.municipio || "").trim().toLowerCase();
     return munSel.has(dane) || munSel.has(nombre);
-  });
+  };
+  const pasaClase = (r) => claseSel.size === 0 || claseSel.has(String(r["Clasificacion legal"] ?? "").trim().toLowerCase());
+  const instFiltrado = inst.filter((r) => pasaMun(r) && pasaClase(r));
 
   // Dedup (id_instrumento, Rol, ID_Concejal)
   const vistosDedup = new Set();
@@ -273,6 +279,7 @@ export function construirMetrics(rawInstrumentos, rawConcejales, opciones = {}) 
       tema: colTema,
       min_instrumentos: minInst,
       municipios: (opciones.municipios && opciones.municipios.length) ? opciones.municipios : "todos",
+      clasificaciones: (opciones.clasificaciones && opciones.clasificaciones.length) ? opciones.clasificaciones : "todas",
     },
     municipios: municipiosDisponibles,
     universo_temas: universoTemas,

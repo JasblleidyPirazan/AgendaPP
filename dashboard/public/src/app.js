@@ -7,6 +7,7 @@ import { renderShannonPartido } from "/src/views/shannon_partido.js";
 import { renderJaccard } from "/src/views/jaccard.js";
 import { renderCorr } from "/src/views/correlaciones.js";
 import { renderComparar } from "/src/views/comparar.js";
+import { renderContadores } from "/src/views/contadores.js";
 import { renderCamaleones } from "/src/views/camaleones.js";
 import { renderAuditoria } from "/src/views/auditoria.js";
 import { construirMetrics } from "/src/metrics.js";
@@ -20,6 +21,7 @@ const VIEWS = {
   jaccard: renderJaccard,
   corr: renderCorr,
   comparar: renderComparar,
+  contadores: renderContadores,
   camaleones: renderCamaleones,
   auditoria: renderAuditoria,
 };
@@ -174,9 +176,15 @@ function configurarFiltros(ctx) {
     .filter((m) => m.dane && m.dane !== "00000")
     .sort((a, b) => String(a.municipio).localeCompare(String(b.municipio), "es"));
 
+  // Clasificaciones legales presentes (Acuerdo, Proyecto de Acuerdo, ...). "" = sin clasificacion.
+  const clasDisp = Array.from(new Set(
+    ctx.raw.instrumentos.map((r) => String(r["Clasificacion legal"] ?? "").trim())
+  )).sort((a, b) => a.localeCompare(b, "es"));
+
   const selRoles = new Set(rolesDisp.filter((r) => DEFAULT_ROLES.some((d) => d.toLowerCase() === r.toLowerCase())));
   if (selRoles.size === 0) rolesDisp.forEach((r) => selRoles.add(r));
   const selMun = new Set(munDisp.map((m) => m.dane));
+  const selClase = new Set(clasDisp); // todas por defecto
   let selColTema = "Tematica"; // nivel de analisis: "Tematica" (fino) o "Sector" (agregado)
 
   function chip(label, checked, onToggle) {
@@ -210,6 +218,12 @@ function configurarFiltros(ctx) {
     contMun.appendChild(chip(m.municipio, selMun.has(m.dane), (on) => { on ? selMun.add(m.dane) : selMun.delete(m.dane); recompute(); }))
   );
 
+  const contClase = document.getElementById("filtro-clasificacion");
+  contClase.innerHTML = "";
+  clasDisp.forEach((c) =>
+    contClase.appendChild(chip(c || "(sin clasif.)", selClase.has(c), (on) => { on ? selClase.add(c) : selClase.delete(c); recompute(); }))
+  );
+
   let pendiente = null;
   function recompute() {
     estado.textContent = "Recalculando…";
@@ -220,6 +234,7 @@ function configurarFiltros(ctx) {
           roles: Array.from(selRoles),
           municipios: Array.from(selMun),
           colTema: selColTema,
+          clasificaciones: selClase.size === clasDisp.length ? [] : Array.from(selClase),
         });
         refrescarTimestamp(ctx);
         const vista = document.querySelector("nav button.active")?.dataset.view || "resumen";

@@ -83,6 +83,12 @@ def construir_metrics(df: pd.DataFrame, nombres: dict, args) -> dict:
     if municipios_filtro:
         df = filtrar_municipios(df, municipios_filtro)
 
+    # Filtro de clasificacion legal (Acuerdo / Proyecto de Acuerdo / ...). Vacio = todas.
+    clasif_filtro = [c.strip() for c in args.clasificacion.split(",")] if args.clasificacion else []
+    if clasif_filtro and "Clasificacion legal" in df.columns:
+        sel = {c.lower() for c in clasif_filtro}
+        df = df[df["Clasificacion legal"].astype(str).str.strip().str.lower().isin(sel)]
+
     # Mapa DANE -> nombre de municipio (para etiquetar concejales y listar disponibles)
     dane_a_municipio: dict[str, str] = {}
     if "Codigo DANE" in df.columns:
@@ -215,6 +221,7 @@ def construir_metrics(df: pd.DataFrame, nombres: dict, args) -> dict:
             "tema": col_tema,
             "min_instrumentos": args.min_instrumentos,
             "municipios": municipios_filtro or "todos",
+            "clasificaciones": clasif_filtro or "todas",
         },
         "municipios": municipios_disponibles,
         "universo_temas": universo_temas,
@@ -238,6 +245,9 @@ def main():
     p.add_argument("--municipios", default="",
                    help="Filtra a estos municipios (nombres o codigos DANE separados por coma). "
                         "Vacio = todos.")
+    p.add_argument("--clasificacion", default="",
+                   help="Filtra por Clasificacion legal (ej. 'Acuerdo' o 'Acuerdo,Proyecto de Acuerdo'). "
+                        "Vacio = todas.")
     p.add_argument("--min-instrumentos", type=int, default=1,
                    help="Concejales con < N instrumentos como autor (Proponente/Ponente) se excluyen de CV/Jaccard. "
                         "Default 1 = incluir a todos (H=0 representa hiperespecializacion).")
