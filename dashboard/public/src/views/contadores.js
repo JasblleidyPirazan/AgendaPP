@@ -28,6 +28,8 @@ export function renderContadores(root, ctx) {
     return munSet.has(dane) || munSet.has(low(r.municipio_origen || r.municipio));
   };
   const pasaClase = (r) => !claseSet || claseSet.has(low(r["Clasificacion legal"]));
+  const normUp = (v) => String(v ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").trim().toUpperCase();
+  const noAdmin = (r) => !(normUp(r["Partido / Movimiento"]).startsWith("ADMINISTRAC") || normUp(r.ID_Concejal).startsWith("ADMINISTRAC"));
 
   // Nombre por ID_Concejal
   const nombres = new Map();
@@ -40,7 +42,7 @@ export function renderContadores(root, ctx) {
     norm(r.Identificador) &&
     low(r["Incluir en analisis"]) !== "no" &&
     rolesSet.has(low(r.Rol)) &&
-    pasaMun(r) && pasaClase(r)
+    pasaMun(r) && pasaClase(r) && noAdmin(r)
   );
 
   // Clasificaciones presentes (columnas)

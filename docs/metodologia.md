@@ -95,7 +95,9 @@ El veredicto global toma la mayoría de partidos. El Shannon por partido (índic
 
 5. **Concejales con baja actividad.** El default `N=1` los incluye. Si se elige subir el umbral (p. ej., 3), reportar siempre cuántos se excluyeron — el filtro descarta justamente a los más especializados, lo que puede sesgar el CV intra-partido hacia menores valores (al excluir los outliers de `H=0`).
 
-6. **ADMINISTRACION como "partido".** Las filas con `Partido / Movimiento = ADMINISTRACION` representan iniciativas del ejecutivo, no del concejo. Suelen tener `ID_Concejal = ADMINISTRACION`. En análisis comparativos entre partidos políticos conviene **filtrarlas** antes de calcular CV/J/Pearson; el pipeline actual las incluye y queda a discreción del notebook excluirlas.
+6. **ADMINISTRACION excluida.** Las filas con `Partido / Movimiento` o `ID_Concejal` que empiezan por `ADMINISTRAC...` (incl. "ADMINISTRACIÓN MUNICIPAL") representan iniciativas del ejecutivo, no del concejo. **El pipeline las excluye de todos los conteos y métricas por defecto** (Python y dashboard).
+
+7. **Canonización de categorías.** Antes de calcular, las variantes de `Tematica`/`Sector` que solo difieren en **mayúsculas, tildes o espacios** se unifican (se conserva la variante original más frecuente como etiqueta). Evita que, p. ej., "...e innovacion" y "...e Innovacion" cuenten como dos temas distintos y fragmenten Shannon/Jaccard/Pearson.
 
 ## Referencias
 

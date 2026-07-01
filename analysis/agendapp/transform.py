@@ -2,10 +2,39 @@
 
 from __future__ import annotations
 
+import unicodedata
 from typing import Iterable
 
 import numpy as np
 import pandas as pd
+
+
+def clave_norm(s) -> str:
+    """Clave de agrupacion: sin tildes, espacios colapsados, mayusculas."""
+    s = unicodedata.normalize("NFD", str(s))
+    s = "".join(c for c in s if unicodedata.category(c) != "Mn")
+    return " ".join(s.strip().split()).upper()
+
+
+def canonicalizar_serie(serie: pd.Series) -> pd.Series:
+    """Une variantes que solo difieren en mayusculas/tildes/espacios.
+
+    Devuelve la serie con la etiqueta canonica (la variante original mas
+    frecuente por `clave_norm`; desempate alfabetico). No toca valores vacios.
+    """
+    s = serie.astype(str).str.strip()
+    no_vacios = s[s != ""]
+    if no_vacios.empty:
+        return serie
+    keys = no_vacios.map(clave_norm)
+
+    def _rep(grupo: pd.Series) -> str:
+        vc = grupo.value_counts()
+        top = sorted(vc[vc == vc.max()].index.tolist())
+        return top[0]
+
+    keymap = no_vacios.groupby(keys).agg(_rep).to_dict()
+    return s.map(lambda v: keymap.get(clave_norm(v), v) if str(v).strip() else v)
 
 ROLES_DEFAULT = ("Proponente", "Ponente", "Coordinador")
 COL_TEMA_DEFAULT = "Tematica"

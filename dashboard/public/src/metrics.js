@@ -112,7 +112,7 @@ export function construirMetrics(rawInstrumentos, rawConcejales, opciones = {}) 
     return daneAMunicipio.get(dane) || "";
   };
 
-  // Filtro de municipios (por DANE o nombre) + clasificacion legal
+  // Filtro de municipios (por DANE o nombre) + clasificacion legal + exclusion ADMINISTRACION
   const pasaMun = (r) => {
     if (munSel.size === 0) return true;
     const dane = String(r["Codigo DANE"] ?? "").trim().padStart(5, "0");
@@ -120,7 +120,9 @@ export function construirMetrics(rawInstrumentos, rawConcejales, opciones = {}) 
     return munSel.has(dane) || munSel.has(nombre);
   };
   const pasaClase = (r) => claseSel.size === 0 || claseSel.has(String(r["Clasificacion legal"] ?? "").trim().toLowerCase());
-  const instFiltrado = inst.filter((r) => pasaMun(r) && pasaClase(r));
+  // ADMINISTRACION (iniciativas del ejecutivo) se excluye de todos los conteos.
+  const noAdmin = (r) => !(claveNorm(r["Partido / Movimiento"]).startsWith("ADMINISTRAC") || claveNorm(r.ID_Concejal).startsWith("ADMINISTRAC"));
+  const instFiltrado = inst.filter((r) => pasaMun(r) && pasaClase(r) && noAdmin(r));
 
   // Dedup (id_instrumento, Rol, ID_Concejal)
   const vistosDedup = new Set();
@@ -135,8 +137,16 @@ export function construirMetrics(rawInstrumentos, rawConcejales, opciones = {}) 
   // Incluir todo salvo lo marcado "No" (vacio = incluido). Cubre plantilla v2
   // (inclusion en blanco) y vieja ("Si"). Solo "No" excluye.
   const incluidos = dedup.filter((r) => String(r["Incluir en analisis"] ?? "").trim().toLowerCase() !== "no");
-  const universoTemas = sortedUnique(incluidos.map((r) => (r[colTema] || "").trim()).filter(Boolean));
-  const universoSectores = sortedUnique(incluidos.map((r) => (r.Sector || "").trim()).filter(Boolean));
+
+  // Canonizacion de categorias: une variantes que solo difieren en
+  // mayusculas / tildes / espacios (conserva la variante mas frecuente como etiqueta).
+  const canonTema = construirCanon(incluidos.map((r) => r[colTema]));
+  const canonSector = construirCanon(incluidos.map((r) => r.Sector));
+  const temaDe = (r) => canonTema.get(claveNorm(r[colTema])) || String(r[colTema] || "").trim();
+  const sectorDe = (r) => canonSector.get(claveNorm(r.Sector)) || String(r.Sector || "").trim();
+
+  const universoTemas = sortedUnique(incluidos.map(temaDe).filter(Boolean));
+  const universoSectores = sortedUnique(incluidos.map(sectorDe).filter(Boolean));
   const nUnicosIncluidos = new Set(incluidos.map((r) => r.id_instrumento)).size;
   const nUnicosTotal = new Set(dedup.map((r) => r.id_instrumento)).size;
 
@@ -168,7 +178,7 @@ export function construirMetrics(rawInstrumentos, rawConcejales, opciones = {}) 
   const matriz = new Map(); // cid -> Map(tema -> count)
   for (const r of filas) {
     const cid = r.ID_Concejal;
-    const t = (r[colTema] || "").trim();
+    const t = temaDe(r);
     if (!cid || !t) continue;
     if (!matriz.has(cid)) matriz.set(cid, new Map());
     const m = matriz.get(cid);
@@ -303,6 +313,35 @@ export function construirMetrics(rawInstrumentos, rawConcejales, opciones = {}) 
 
 function sortedUnique(arr) {
   return Array.from(new Set(arr)).sort((a, b) => String(a).localeCompare(String(b), "es"));
+}
+
+// Clave de normalizacion: sin tildes, espacios colapsados, mayusculas.
+// Usada para agrupar variantes de la misma categoria y detectar ADMINISTRACION.
+export function claveNorm(v) {
+  return String(v ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").trim().replace(/\s+/g, " ").toUpperCase();
+}
+
+// Construye un mapa claveNorm -> etiqueta canonica (la variante original mas
+// frecuente; desempate alfabetico). Une "X innovacion" y "X Innovacion", etc.
+export function construirCanon(valores) {
+  const grupos = new Map();
+  for (const v of valores) {
+    const orig = String(v ?? "").trim();
+    if (!orig) continue;
+    const key = claveNorm(orig);
+    if (!grupos.has(key)) grupos.set(key, new Map());
+    const m = grupos.get(key);
+    m.set(orig, (m.get(orig) || 0) + 1);
+  }
+  const map = new Map();
+  for (const [key, m] of grupos) {
+    let best = "", bestN = -1;
+    for (const [orig, n] of m) {
+      if (n > bestN || (n === bestN && orig.localeCompare(best, "es") < 0)) { best = orig; bestN = n; }
+    }
+    map.set(key, best);
+  }
+  return map;
 }
 
 function round(x, decimals) {
