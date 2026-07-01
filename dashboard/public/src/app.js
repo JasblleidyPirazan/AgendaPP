@@ -131,15 +131,36 @@ async function main() {
   btnDescargar.addEventListener("click", () => {
     const ts = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
     const filename = `agendapp_metrics_${ts}.json`;
-    const blob = new Blob([JSON.stringify(ctx.metrics, null, 2)], { type: "application/json" });
+
+    let payload;
+    if (ctx.raw && Array.isArray(ctx.raw.instrumentos)) {
+      // Exporta AMBOS niveles (Sector y Temática) con los filtros activos.
+      const base = ctx._filtros || {};
+      payload = {
+        generadoEn: new Date().toISOString(),
+        filtros: {
+          roles: base.roles ?? "todos",
+          municipios: (base.municipios && base.municipios.length) ? base.municipios : "todos",
+          clasificaciones: (base.clasificaciones && base.clasificaciones.length) ? base.clasificaciones : "todas",
+        },
+        por_tematica: construirMetrics(ctx.raw.instrumentos, ctx.raw.concejales, { ...base, colTema: "Tematica" }),
+        por_sector: construirMetrics(ctx.raw.instrumentos, ctx.raw.concejales, { ...base, colTema: "Sector" }),
+      };
+    } else {
+      // Sin endpoint solo hay el nivel precalculado en metrics.json.
+      payload = ctx.metrics;
+    }
+
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
     a.download = filename;
     a.click();
     URL.revokeObjectURL(url);
-    estado.textContent = `↓ ${filename}`;
-    setTimeout(() => { estado.textContent = ""; }, 5000);
+    const doble = ctx.raw && Array.isArray(ctx.raw.instrumentos);
+    estado.textContent = `↓ ${filename}${doble ? " (Temática + Sector)" : ""}`;
+    setTimeout(() => { estado.textContent = ""; }, 6000);
   });
 
   configurarFiltros(ctx);
@@ -230,11 +251,15 @@ function configurarFiltros(ctx) {
     clearTimeout(pendiente);
     pendiente = setTimeout(() => {
       try {
-        ctx.metrics = construirMetrics(ctx.raw.instrumentos, ctx.raw.concejales, {
+        // Filtros activos (sin colTema): se guardan para poder exportar ambos niveles.
+        ctx._filtros = {
           roles: Array.from(selRoles),
           municipios: Array.from(selMun),
-          colTema: selColTema,
           clasificaciones: selClase.size === clasDisp.length ? [] : Array.from(selClase),
+        };
+        ctx.metrics = construirMetrics(ctx.raw.instrumentos, ctx.raw.concejales, {
+          ...ctx._filtros,
+          colTema: selColTema,
         });
         refrescarTimestamp(ctx);
         const vista = document.querySelector("nav button.active")?.dataset.view || "resumen";
