@@ -3,7 +3,8 @@
 Referencias:
 - Shannon (1948), Pielou (1966): H' normalizado por log(S_observada) en [0, 1].
 - Jaccard (1912): |A intersect B| / |A union B|.
-- Pearson: correlacion entre perfiles tematicos agregados.
+- Sigelman & Buell (2004): issue convergence score entre perfiles de agenda.
+- Pearson: correlacion entre perfiles tematicos agregados (robustez).
 
 Convenciones:
 - Conteos siempre como arrays no-negativos. Cero total => H = 0.
@@ -95,6 +96,33 @@ def jaccard_pairwise_mean(matrix_binaria: np.ndarray) -> float:
         inter = np.logical_and(m[i], m[j]).sum()
         vals.append(inter / union)
     return float(np.mean(vals))
+
+
+def convergencia_agendas(perfil_a: Iterable[float], perfil_b: Iterable[float]) -> float:
+    """Indice de convergencia de agendas (Sigelman & Buell 2004), escala [0, 1].
+
+    C(A, B) = sum_k min(p_Ak, p_Bk) = 1 - (1/2) * sum_k |p_Ak - p_Bk|
+
+    Espera vectores alineados sobre el mismo universo de categorias (rellenar
+    con 0 las ausentes). Renormaliza internamente para protegerse de
+    proporciones ya redondeadas; idealmente construir desde conteos crudos.
+
+    Interpretacion literal: C = 0.75 => los dos actores comparten el 75% de su
+    agenda. Metrica principal del componente interpartidista; Pearson se
+    conserva como prueba de robustez (party_correlation).
+    Devuelve NaN si algun perfil suma cero (actor sin instrumentos) — en el
+    JSON de salida debe reportarse como null, no como 0.
+    """
+    a = np.asarray(list(perfil_a), dtype=float)
+    b = np.asarray(list(perfil_b), dtype=float)
+    if a.shape != b.shape:
+        raise ValueError("perfiles deben tener la misma forma")
+    if (a < 0).any() or (b < 0).any():
+        raise ValueError("perfiles no admiten valores negativos")
+    sa, sb = a.sum(), b.sum()
+    if sa == 0 or sb == 0:
+        return float("nan")
+    return float(np.minimum(a / sa, b / sb).sum())
 
 
 def party_correlation(perfil_a: Iterable[float], perfil_b: Iterable[float]) -> float:

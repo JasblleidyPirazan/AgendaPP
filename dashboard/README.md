@@ -39,7 +39,7 @@ Si está vacío, la pestaña "Auditoría" muestra un placeholder; las otras vist
 | Diversidad indiv. (H) | `metrics.json` | Histograma de Shannon individual + tabla por concejal (con municipio). |
 | Diversidad partido (H) | `metrics.json` | Barras de Shannon del bloque por partido (0 = focalizada, 1 = amplia). |
 | Convergencia (J) | `metrics.json` | Barras de Jaccard intra-partido con umbral 0.5. |
-| Inter-partido | `metrics.json` | Heatmap de correlaciones Pearson. |
+| Inter-partido | `metrics.json` | Heatmap de convergencia de agendas (Sigelman & Buell 2004) + Pearson como robustez. |
 | Auditoría | endpoint Apps Script | Validaciones + últimos instrumentos crudos. |
 
 **Filtros en vivo** (requieren el endpoint Apps Script): la barra bajo la navegación permite filtrar todas las métricas por **rol** (Proponente, Ponente, Coordinador, …) y por **municipio**; al cambiar un chip, las métricas se recalculan en el navegador.

@@ -71,5 +71,6 @@ Los tests cubren:
 - Shannon: uniforme→1, único tema→0, vacío→0, sensibilidad a concentración, invariancia a escala, rechazo de negativos.
 - CV: grupo homogéneo, dispersado, casos NaN.
 - Jaccard: idénticos→1, disjuntos→0, vacíos→1, mezcla.
-- Pearson: idénticos→1, opuestos→-1, varianza cero→NaN, formas incompatibles→ValueError.
+- Convergencia (Sigelman & Buell 2004): idénticos→1, disjuntos→0, caso intermedio, simetría, perfil vacío→NaN, renormalización, equivalencia con la forma de diferencias.
+- Pearson (robustez): idénticos→1, opuestos→-1, varianza cero→NaN, formas incompatibles→ValueError.
 - `transform`: pivote, filtros de rol/incluir, universo de temas, binarización, perfil, mínimo de instrumentos.

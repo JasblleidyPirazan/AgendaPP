@@ -9,6 +9,7 @@ import pandas as pd
 import pytest
 
 from agendapp.indices import (
+    convergencia_agendas,
     cv_shannon,
     jaccard,
     jaccard_pairwise_mean,
@@ -117,6 +118,58 @@ class TestJaccardPairwise:
         # promedio = (1 + 0 + 0) / 3
         m = np.array([[1, 1, 0, 0], [1, 1, 0, 0], [0, 0, 1, 1]])
         assert jaccard_pairwise_mean(m) == pytest.approx(1 / 3)
+
+
+# ---------- Convergencia de agendas (Sigelman & Buell 2004) ----------
+
+class TestConvergencia:
+    # Casos de prueba de Documentacion_Convergencia_Agendas, seccion 8.
+
+    def test_perfiles_identicos(self):
+        # A = B = {salud: 0.5, educacion: 0.5}
+        assert convergencia_agendas([0.5, 0.5], [0.5, 0.5]) == pytest.approx(1.0)
+
+    def test_perfiles_disjuntos(self):
+        # Ejemplo del articulo original: A = {tema1: 1}; B = {tema2: 1}
+        assert convergencia_agendas([1, 0], [0, 1]) == pytest.approx(0.0)
+
+    def test_caso_intermedio(self):
+        # A = {t1: 0.6, t2: 0.4}; B = {t1: 0.2, t2: 0.3, t3: 0.5}
+        # C = min(0.6, 0.2) + min(0.4, 0.3) + min(0, 0.5) = 0.5
+        assert convergencia_agendas([0.6, 0.4, 0.0], [0.2, 0.3, 0.5]) == pytest.approx(0.5)
+
+    def test_simetria(self):
+        a = [0.6, 0.4, 0.0]
+        b = [0.2, 0.3, 0.5]
+        assert convergencia_agendas(a, b) == pytest.approx(convergencia_agendas(b, a))
+
+    def test_perfil_vacio_da_nan(self):
+        # Partido sin instrumentos -> null en el JSON (no 0)
+        assert math.isnan(convergencia_agendas([0, 0, 0], [0.5, 0.5, 0]))
+
+    def test_renormaliza_proporciones_redondeadas(self):
+        # Perfiles que no suman exactamente 1 (redondeo previo a 4 decimales)
+        a = [0.3333, 0.6666, 0.0]
+        assert convergencia_agendas(a, a) == pytest.approx(1.0)
+
+    def test_equivalencia_con_forma_de_diferencias(self):
+        # C = 1 - (1/2) * sum |a - b|
+        a = np.array([0.1, 0.2, 0.3, 0.4])
+        b = np.array([0.4, 0.3, 0.2, 0.1])
+        esperado = 1 - 0.5 * np.abs(a - b).sum()
+        assert convergencia_agendas(a, b) == pytest.approx(float(esperado))
+
+    def test_ceros_compartidos_no_aportan(self):
+        # A diferencia de Pearson, ignorar los mismos temas no acerca perfiles
+        assert convergencia_agendas([1, 0, 0, 0], [0, 1, 0, 0]) == pytest.approx(0.0)
+
+    def test_formas_distintas_levanta(self):
+        with pytest.raises(ValueError):
+            convergencia_agendas([1, 0], [1, 0, 0])
+
+    def test_negativos_levanta(self):
+        with pytest.raises(ValueError):
+            convergencia_agendas([-0.1, 1.1], [0.5, 0.5])
 
 
 # ---------- Pearson ----------
