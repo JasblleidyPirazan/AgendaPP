@@ -52,8 +52,8 @@ export function renderComparar(root, ctx) {
       </p>
       <p style="margin:.2rem 0;font-size:.9rem;color:var(--muted)">
         ${conDatos.length} de ${municipios.length} municipios con datos analizables.
-        Pearson inter-partido promedio (global): <strong>${fmt(total.pearProm)}</strong>
-        ${total.pearProm != null ? `(${total.pearProm >= 0.4 ? "perfiles parecidos entre partidos → consistente con H2" : total.pearProm <= 0.1 ? "perfiles distintos entre partidos → consistente con H1" : "señal intermedia"})` : ""}.
+        Convergencia inter-partido promedio (global${total.convEsGrande ? ", pares grandes" : ""}): <strong>${fmt(total.convProm)}</strong>
+        ${total.convProm != null ? `(${total.convProm >= 0.5 ? "los partidos comparten gran parte de su agenda → consistente con H2" : total.convProm <= 0.3 ? "agendas partidistas diferenciadas → consistente con H1" : "señal intermedia"})` : ""}.
       </p>
     </div>
 
@@ -62,7 +62,7 @@ export function renderComparar(root, ctx) {
       <table>
         <thead><tr>
           <th>Municipio</th><th>Concejales</th><th>Partidos</th><th>Instrum.</th>
-          <th>H indiv. prom</th><th>H partido prom</th><th>Jaccard prom</th><th>Pearson prom</th><th>Veredicto</th>
+          <th>H indiv. prom</th><th>H partido prom</th><th>Jaccard prom</th><th>Converg. prom</th><th>Veredicto</th>
         </tr></thead>
         <tbody>
           ${filas.map((f) => filaHTML(f.municipio, f.r)).join("")}
@@ -73,7 +73,8 @@ export function renderComparar(root, ctx) {
     <p style="color:var(--muted);font-size:.85rem">
       H indiv. prom = diversidad temática promedio de los concejales · H partido prom = diversidad de la agenda
       del bloque · Jaccard prom = convergencia temática intra-partido (decide el veredicto) ·
-      Pearson prom = similitud promedio entre perfiles de partidos.
+      Converg. prom = % de agenda compartida promedio entre partidos (Sigelman &amp; Buell 2004;
+      usa solo pares con ambos partidos grandes cuando existen).
     </p>
 
     <h3>Convergencia intra-partido (Jaccard) por municipio</h3>
@@ -135,7 +136,11 @@ function resumen(m) {
   const conc = (m.concejales || []).filter((c) => c.n_instrumentos > 0);
   const hPart = (m.partidos || []).map((p) => p.shannon_partido).filter((v) => v != null);
   const jacc = (m.partidos || []).map((p) => p.jaccard_intra).filter((v) => v != null);
-  const pear = (m.interpartido || []).map((p) => p.pearson).filter((v) => v != null);
+  // Convergencia (Sigelman & Buell 2004): preferir pares grandes (ambos
+  // partidos >= umbral de concejales); si no hay, promediar todos los pares.
+  const pares = (m.interpartido || []).filter((p) => p.convergencia != null);
+  const grandes = pares.filter((p) => p.par_grande);
+  const convBase = grandes.length ? grandes : pares;
   return {
     nConcejales: conc.length,
     nPartidos: (m.partidos || []).length,
@@ -143,7 +148,8 @@ function resumen(m) {
     hIndProm: media(conc.map((c) => c.shannon_norm)),
     hPartProm: media(hPart),
     jaccProm: media(jacc),
-    pearProm: media(pear),
+    convProm: media(convBase.map((p) => p.convergencia)),
+    convEsGrande: grandes.length > 0,
     h1: m.veredicto?.partidos_apoyan_H1 || 0,
     h2: m.veredicto?.partidos_apoyan_H2 || 0,
     veredicto: m.veredicto?.interpretacion || "—",
@@ -162,7 +168,7 @@ function filaHTML(nombre, r, esTotal) {
     <td style="text-align:center">${fmt(r.hIndProm)}</td>
     <td style="text-align:center">${fmt(r.hPartProm)}</td>
     <td style="text-align:center">${fmt(r.jaccProm)}</td>
-    <td style="text-align:center">${fmt(r.pearProm)}</td>
+    <td style="text-align:center">${fmt(r.convProm)}</td>
     <td class="${sinDatos ? "" : vClass}">${sinDatos ? '<span style="color:var(--muted)">sin datos</span>' : r.veredicto}</td>
   </tr>`;
 }

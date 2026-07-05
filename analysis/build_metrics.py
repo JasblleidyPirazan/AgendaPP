@@ -26,6 +26,7 @@ import numpy as np
 import pandas as pd
 
 from agendapp.indices import (
+    convergencia_agendas,
     jaccard_pairwise_mean,
     party_correlation,
     shannon_norm,
@@ -42,6 +43,10 @@ from agendapp.transform import (
 )
 
 UMBRAL_JACCARD = 0.5
+# Pares "grandes" para el resumen interpartidista: ambos partidos con >= N
+# concejales. Con menos casos el perfil no es estimable y el promedio global
+# se contamina (ver Documentacion_Convergencia_Agendas, seccion 5.2).
+UMBRAL_N_CONCEJALES = 10
 
 
 def cargar(args) -> tuple[pd.DataFrame, dict]:
@@ -199,14 +204,35 @@ def construir_metrics(df: pd.DataFrame, nombres: dict, args) -> dict:
             "perfil_tematico": {t: round(float(v), 4) for t, v in perfil.items() if v > 0},
         })
 
-    # Correlaciones inter-partido (Pearson sobre perfiles alineados al universo de temas)
+    # Convergencia inter-partido (Sigelman & Buell 2004) como metrica principal,
+    # Pearson como prueba de robustez. Perfiles alineados al universo de temas.
+    n_concejales_por_partido = {p["nombre"]: p["n_concejales"] for p in partidos_out}
     interpartido = []
     partidos_nombres = list(perfiles.keys())
     for a, b in itertools.combinations(partidos_nombres, 2):
         va = perfiles[a].reindex(universo_temas).fillna(0).values
         vb = perfiles[b].reindex(universo_temas).fillna(0).values
+        c = convergencia_agendas(va, vb)
         r = party_correlation(va, vb)
-        interpartido.append({"a": a, "b": b, "pearson": None if np.isnan(r) else round(float(r), 4)})
+        na = n_concejales_por_partido.get(a, 0)
+        nb = n_concejales_por_partido.get(b, 0)
+        interpartido.append({
+            "a": a,
+            "b": b,
+            "convergencia": None if np.isnan(c) else round(float(c), 4),
+            "pearson": None if np.isnan(r) else round(float(r), 4),
+            "n_concejales_a": na,
+            "n_concejales_b": nb,
+            "par_grande": na >= UMBRAL_N_CONCEJALES and nb >= UMBRAL_N_CONCEJALES,
+        })
+
+    conv_grandes = [p["convergencia"] for p in interpartido if p["par_grande"] and p["convergencia"] is not None]
+    resumen_interpartido = {
+        "convergencia_media_pares_grandes": round(float(np.mean(conv_grandes)), 4) if conv_grandes else None,
+        "convergencia_min_pares_grandes": round(float(np.min(conv_grandes)), 4) if conv_grandes else None,
+        "convergencia_max_pares_grandes": round(float(np.max(conv_grandes)), 4) if conv_grandes else None,
+        "n_pares_grandes": len(conv_grandes),
+    }
 
     # Veredicto a nivel partido segun convergencia tematica (Jaccard).
     # J >= umbral => convergencia intra-partido (apoya H1); J < umbral => autonomia (H2).
@@ -249,6 +275,11 @@ def construir_metrics(df: pd.DataFrame, nombres: dict, args) -> dict:
         "concejales": concejales_out,
         "partidos": partidos_out,
         "interpartido": interpartido,
+        "parametros_interpartido": {
+            "metrica_principal": "convergencia_sigelman_buell_2004",
+            "umbral_n_concejales": UMBRAL_N_CONCEJALES,
+        },
+        "resumen_interpartido": resumen_interpartido,
         "excluidos_min_instrumentos": excluidos_global,
         "veredicto": veredicto,
     }

@@ -3,6 +3,10 @@
 // endpoint Apps Script, sin necesidad de Python ni rebuild de Netlify.
 
 const UMBRAL_JACCARD = 0.5;
+// Pares "grandes" para el resumen interpartidista: ambos partidos con >= N
+// concejales. Con menos casos el perfil no es estimable y el promedio global
+// se contamina (Documentacion_Convergencia_Agendas, seccion 5.2).
+const UMBRAL_N_CONCEJALES = 10;
 const ROL_DEFAULT = ["Proponente", "Ponente", "Coordinador"];
 const COL_TEMA_DEFAULT = "Tematica";
 const MIN_INSTRUMENTOS_DEFAULT = 1;
@@ -52,6 +56,22 @@ export function jaccardPairwiseMean(binaryMatrix) {
     }
   }
   return vals.reduce((s, x) => s + x, 0) / vals.length;
+}
+
+// Convergencia de agendas (Sigelman & Buell 2004), escala 0-1.
+// C(A,B) = sum_k min(p_Ak, p_Bk) = 1 - (1/2) * sum |p_Ak - p_Bk|.
+// Espera vectores alineados al mismo universo de categorias; renormaliza
+// internamente (protege contra proporciones ya redondeadas).
+// Lectura literal: C = 0.75 => comparten el 75% de su agenda.
+// Devuelve null si algun perfil suma cero (partido sin instrumentos).
+export function convergenciaAgendas(a, b) {
+  if (a.length !== b.length) throw new Error("perfiles de distinta forma");
+  const sa = a.reduce((s, v) => s + v, 0);
+  const sb = b.reduce((s, v) => s + v, 0);
+  if (sa === 0 || sb === 0) return null;
+  let c = 0;
+  for (let i = 0; i < a.length; i++) c += Math.min(a[i] / sa, b[i] / sb);
+  return c;
 }
 
 export function pearsonCorr(a, b) {
@@ -212,6 +232,7 @@ export function construirMetrics(rawInstrumentos, rawConcejales, opciones = {}) 
 
   const partidos_out = [];
   const perfiles = new Map();
+  const conteosPorPartido = new Map(); // partido -> Map(tema -> conteo crudo)
   const excluidos = [];
 
   for (const [partido, cids] of cidsPorPartido.entries()) {
@@ -247,6 +268,7 @@ export function construirMetrics(rawInstrumentos, rawConcejales, opciones = {}) 
       for (const [t, n] of sumaTemas.entries()) perfilObj[t] = round(n / total, 4);
     }
     perfiles.set(partido, perfilObj);
+    conteosPorPartido.set(partido, sumaTemas);
 
     // Shannon del bloque: diversidad de la agenda agregada del partido.
     const hPartido = total > 0 ? shannonNorm(Array.from(sumaTemas.values())) : NaN;
@@ -261,18 +283,45 @@ export function construirMetrics(rawInstrumentos, rawConcejales, opciones = {}) 
     });
   }
 
-  // Correlaciones inter-partido (Pearson sobre perfiles alineados al universo)
+  // Convergencia inter-partido (Sigelman & Buell 2004) como metrica principal,
+  // Pearson como prueba de robustez. La convergencia se calcula desde los
+  // conteos crudos por categoria (no desde el perfil redondeado a 4 decimales).
+  const nConcejalesPorPartido = new Map(partidos_out.map((p) => [p.nombre, p.n_concejales]));
   const interpartido = [];
   const nombresPartidos = Array.from(perfiles.keys());
   for (let i = 0; i < nombresPartidos.length; i++) {
     for (let j = i + 1; j < nombresPartidos.length; j++) {
       const a = nombresPartidos[i], b = nombresPartidos[j];
+      const ca = conteosPorPartido.get(a), cb = conteosPorPartido.get(b);
+      const cva = universoTemas.map((t) => ca.get(t) || 0);
+      const cvb = universoTemas.map((t) => cb.get(t) || 0);
+      const c = convergenciaAgendas(cva, cvb);
       const va = universoTemas.map((t) => perfiles.get(a)[t] || 0);
       const vb = universoTemas.map((t) => perfiles.get(b)[t] || 0);
       const r = pearsonCorr(va, vb);
-      interpartido.push({ a, b, pearson: isNaN(r) ? null : round(r, 4) });
+      const na = nConcejalesPorPartido.get(a) || 0;
+      const nb = nConcejalesPorPartido.get(b) || 0;
+      interpartido.push({
+        a, b,
+        convergencia: c === null ? null : round(c, 4),
+        pearson: isNaN(r) ? null : round(r, 4),
+        n_concejales_a: na,
+        n_concejales_b: nb,
+        par_grande: na >= UMBRAL_N_CONCEJALES && nb >= UMBRAL_N_CONCEJALES,
+      });
     }
   }
+
+  const convGrandes = interpartido
+    .filter((p) => p.par_grande && p.convergencia !== null)
+    .map((p) => p.convergencia);
+  const resumenInterpartido = {
+    convergencia_media_pares_grandes: convGrandes.length
+      ? round(convGrandes.reduce((s, x) => s + x, 0) / convGrandes.length, 4) : null,
+    convergencia_min_pares_grandes: convGrandes.length ? round(Math.min(...convGrandes), 4) : null,
+    convergencia_max_pares_grandes: convGrandes.length ? round(Math.max(...convGrandes), 4) : null,
+    n_pares_grandes: convGrandes.length,
+  };
 
   // Veredicto segun convergencia tematica (Jaccard): J >= umbral => H1, J < umbral => H2.
   let h1 = 0, h2 = 0, neutros = 0;
@@ -299,6 +348,11 @@ export function construirMetrics(rawInstrumentos, rawConcejales, opciones = {}) 
     concejales: conceales_out,
     partidos: partidos_out,
     interpartido,
+    parametros_interpartido: {
+      metrica_principal: "convergencia_sigelman_buell_2004",
+      umbral_n_concejales: UMBRAL_N_CONCEJALES,
+    },
+    resumen_interpartido: resumenInterpartido,
     excluidos_min_instrumentos: excluidos,
     veredicto: {
       umbral_jaccard: UMBRAL_JACCARD,

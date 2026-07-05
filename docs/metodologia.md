@@ -57,19 +57,27 @@ Cuando ambos conjuntos están vacíos se define $J = 1$ (igualdad por ausencia).
 
 Referencias: [Jaccard (1912)](https://en.wikipedia.org/wiki/Jaccard_index).
 
-### 4. Convergencia inter-partido — Pearson sobre perfiles agregados
+### 4. Convergencia inter-partido — índice de Sigelman & Buell (2004)
 
 Para cada partido se calcula el **perfil temático**:
 
 $$\pi_P(t) = \frac{\sum_{c \in P} n_{c,t}}{\sum_{c \in P} \sum_{t'} n_{c,t'}}$$
 
-(proporción de los instrumentos del partido que tocan el tema $t$, alineado al universo global de temas).
+(proporción de los instrumentos del partido que tocan el tema $t$, alineado al universo global de temas; las categorías no tocadas valen 0 y el vector suma 1).
 
-Entre pares de partidos $(A, B)$ se reporta $r_{AB} = \text{Pearson}(\pi_A, \pi_B) \in [-1, 1]$.
+Entre pares de partidos $(A, B)$ la **métrica principal** es el índice de convergencia de agendas:
 
-- $r \approx 1$: perfiles temáticos iguales.
-- $r \approx 0$: independientes.
-- $r \approx -1$: opuestos.
+$$C(A, B) = \sum_t \min\!\big(\pi_A(t), \pi_B(t)\big) = 1 - \tfrac{1}{2} \sum_t |\pi_A(t) - \pi_B(t)| \in [0, 1]$$
+
+- **Interpretación literal**: $C = 0.75$ significa que los dos partidos comparten el 75% de su agenda (uno tendría que reasignar el 25% restante de su atención temática para igualar al otro).
+- $C = 1$: agendas idénticas · $C = 0$: sin ningún tema en común.
+- Los ceros compartidos **no** aportan: dos partidos no se "parecen" por ignorar los mismos temas (a diferencia de Pearson).
+- Es simétrica, apta para datos composicionales (proporciones que suman 1) e insensible al volumen total de instrumentos.
+- Se calcula desde los **conteos crudos** por categoría (no desde proporciones redondeadas), y devuelve `null` si un partido no tiene instrumentos.
+- **Filtro de tamaño**: se calcula para todos los pares, pero el resumen agregado (`resumen_interpartido`) usa solo **pares grandes** (ambos partidos con ≥ 10 concejales, campo `par_grande`); con menos casos el perfil no es estimable y el promedio se contamina.
+- **Granularidad**: con categorías finas (temáticas) los puntajes son sistemáticamente menores que con categorías gruesas (sectores); ambos se reportan y **no son comparables entre sí**.
+
+**Pearson como robustez.** El coeficiente $r_{AB} = \text{Pearson}(\pi_A, \pi_B)$ se conserva en cada par como prueba de robustez (anexo), no como métrica principal: su lectura no es sustantiva sobre perfiles composicionales (centra en la media $1/K$, es sensible a los ceros compartidos y los perfiles violan la independencia entre componentes). Los ordenamientos de pares por convergencia y por Pearson concuerdan (Spearman ρ = 0.81 por temática y 0.93 por sector en la validación con los datos del proyecto).
 
 ## Veredicto operativo
 
@@ -81,7 +89,7 @@ Para cada partido con J definido (≥ 2 concejales aptos), la convergencia temá
 | J < 0.5 | Apoya H2 (cada concejal aborda temas distintos → autonomía) |
 | J indefinido (< 2 aptos) | Ambiguo |
 
-El veredicto global toma la mayoría de partidos. El Shannon por partido (índice 2) y las correlaciones inter-partido (índice 4) se reportan como evidencia adicional: bajo H1 esperamos correlaciones predominantemente bajas/negativas entre partidos rivales; bajo H2 esperamos correlaciones altas (todos los partidos tendrían perfiles parecidos a la "media legislativa").
+El veredicto global toma la mayoría de partidos. El Shannon por partido (índice 2) y la convergencia inter-partido (índice 4) se reportan como evidencia adicional: bajo H1 esperamos convergencias bajas entre partidos rivales (agendas de nicho diferenciadas); bajo H2 esperamos convergencias altas (todos los partidos comparten gran parte de la agenda). El contraste clave para H2: **convergencia interpartidista alta + Jaccard intra-partido casi nulo** = los perfiles de los partidos son agregaciones de agendas individuales dispersas, no estrategias de nicho.
 
 ## Limitaciones y notas
 
@@ -91,7 +99,7 @@ El veredicto global toma la mayoría de partidos. El Shannon por partido (índic
 
 3. **Riqueza observada vs. universo.** El Shannon se normaliza por la **riqueza observada del concejal** (no por el universo global). Esto evita penalizar a concejales de bajo volumen y se alinea con la práctica ecológica; el costo es que dos concejales con `H = 1` pero distintos `|T_c|` no son directamente comparables. Usar `n_instrumentos` como contexto.
 
-4. **Universo de temas.** Para Pearson inter-partido **sí** se alinea al universo global (rellenando con 0 los temas no tocados), porque la comparación requiere vectores de la misma dimensión.
+4. **Universo de temas.** Para la convergencia y el Pearson inter-partido **sí** se alinea al universo global (rellenando con 0 los temas no tocados), porque la comparación requiere vectores de la misma dimensión.
 
 5. **Concejales con baja actividad.** El default `N=1` los incluye. Si se elige subir el umbral (p. ej., 3), reportar siempre cuántos se excluyeron — el filtro descarta justamente a los más especializados, lo que puede sesgar el CV intra-partido hacia menores valores (al excluir los outliers de `H=0`).
 
@@ -106,3 +114,4 @@ El veredicto global toma la mayoría de partidos. El Shannon por partido (índic
 - Jaccard, P. (1912). *The distribution of the flora in the alpine zone.* New Phytologist.
 - Operativas: [Statology — Shannon](https://www.statology.org/shannon-diversity-index/), [Statology — Pielou](https://www.statology.org/how-to-calculate-interpret-pielous-evenness-index/), [LibreTexts — Diversity Indices](https://bio.libretexts.org/Courses/Gettysburg_College/01:_Ecology_for_All/22:_Biodiversity/22.02:_Diversity_Indices).
 - Cohesión legislativa: [B-Call (Frontiers, 2025)](https://www.frontiersin.org/journals/political-science/articles/10.3389/fpos.2025.1670089/full), [Wikipedia — Jaccard index](https://en.wikipedia.org/wiki/Jaccard_index).
+- Convergencia de agendas: [Sigelman & Buell (2004). *Avoidance or engagement? Issue convergence in U.S. presidential campaigns, 1960–2000.* AJPS 48(4), 650–661](https://doi.org/10.1111/j.0092-5853.2004.00093.x); Kaplan, Park & Ridout (2006). *Dialogue in American political campaigns?* AJPS 50(3), 724–736; Green-Pedersen & Mortensen (2010). *Who sets the agenda and who responds to it in the Danish parliament?* EJPR 49(2), 257–281.

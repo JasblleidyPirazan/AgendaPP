@@ -5,7 +5,7 @@ Análisis de agendas temáticas de concejales municipales para contrastar dos hi
 - **H1 — Uniformidad Partidista**: las agendas las determina el partido.
 - **H2 — Autonomía Individual**: las agendas responden a motivaciones individuales.
 
-Métricas: Shannon individual, Shannon por partido (diversidad del bloque), Jaccard intra-partido, correlaciones Pearson inter-partido. Filtrables por rol y municipio. Ver [`docs/metodologia.md`](docs/metodologia.md).
+Métricas: Shannon individual, Shannon por partido (diversidad del bloque), Jaccard intra-partido, convergencia de agendas inter-partido (Sigelman & Buell 2004; Pearson como robustez). Filtrables por rol y municipio. Ver [`docs/metodologia.md`](docs/metodologia.md).
 
 ## Componentes
 
