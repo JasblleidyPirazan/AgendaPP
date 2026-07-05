@@ -71,6 +71,8 @@ export function renderAuditoria(root, ctx) {
   // --- Instrumentos (únicos) con Sector Y Temática vacíos ---
   // Se agrega por id_instrumento porque un instrumento aparece en varias filas
   // (una por actor): basta con que UNA fila traiga Sector o Tematica.
+  // Solo se reportan los que ENTRAN al procesamiento: igual que el pipeline,
+  // se incluye todo salvo lo marcado "No" (el vacio cuenta como incluido).
   const porInst = new Map();
   for (const r of instrumentos) {
     if (!norm(r.Identificador)) continue;
@@ -82,16 +84,18 @@ export function renderAuditoria(root, ctx) {
       anio: norm(r.Anio) || "—",
       titulo: norm(r.Titulo),
       incluir: norm(r["Incluir en analisis"]) || "—",
+      incluido: false,
       conSector: false,
       conTema: false,
     });
     const g = porInst.get(id);
+    if (norm(r["Incluir en analisis"]).toLowerCase() !== "no") g.incluido = true;
     if (norm(r.Sector)) g.conSector = true;
     if (norm(r.Tematica)) g.conTema = true;
     if (!g.titulo && norm(r.Titulo)) g.titulo = norm(r.Titulo);
   }
   const sinSectorNiTema = Array.from(porInst.values())
-    .filter((i) => !i.conSector && !i.conTema)
+    .filter((i) => i.incluido && !i.conSector && !i.conTema)
     .sort((a, b) => a.mun.localeCompare(b.mun, "es") || a.id.localeCompare(b.id, "es"));
 
   const sinTemaPorMun = new Map();
@@ -103,10 +107,11 @@ export function renderAuditoria(root, ctx) {
 
   const MAX_SIN_TEMA = 300;
   const seccionSinTema = `
-    <h3 style="margin-top:2rem">Instrumentos sin Sector ni Temática (${sinSectorNiTema.length})</h3>
+    <h3 style="margin-top:2rem">Instrumentos incluidos sin Sector ni Temática (${sinSectorNiTema.length})</h3>
     <p style="color:var(--muted);font-size:0.9rem">
-      Instrumentos únicos donde <strong>ninguna</strong> fila trae Sector ni Tematica.
-      En las gráficas aparecen como <strong>(vacío)</strong> y no entran a los índices: hay que completarlos en el Sheet del municipio.
+      Instrumentos únicos que <strong>entran al procesamiento</strong> (Incluir = "Si" o vacío; los marcados "No" se omiten)
+      pero donde <strong>ninguna</strong> fila trae Sector ni Tematica.
+      En las gráficas aparecen como <strong>(vacío)</strong> y no aportan a los índices: hay que completarlos en el Sheet del municipio.
     </p>
     ${sinSectorNiTema.length === 0
       ? '<p class="empty">Todos los instrumentos tienen Sector o Temática ✔</p>'
