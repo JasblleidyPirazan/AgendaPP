@@ -160,10 +160,17 @@ export function construirMetrics(rawInstrumentos, rawConcejales, opciones = {}) 
 
   // Canonizacion de categorias: une variantes que solo difieren en
   // mayusculas / tildes / espacios (conserva la variante mas frecuente como etiqueta).
+  // Incluye partido: una tilde de diferencia ("DEMOCRÁTICO" vs "DEMOCRATICO")
+  // parte un partido en dos y distorsiona perfiles y convergencia.
   const canonTema = construirCanon(incluidos.map((r) => r[colTema]));
   const canonSector = construirCanon(incluidos.map((r) => r.Sector));
+  const canonPartido = construirCanon(incluidos.map((r) => String(r["Partido / Movimiento"] || "").trim().toUpperCase()));
   const temaDe = (r) => canonTema.get(claveNorm(r[colTema])) || String(r[colTema] || "").trim();
   const sectorDe = (r) => canonSector.get(claveNorm(r.Sector)) || String(r.Sector || "").trim();
+  const partidoDe = (r) => {
+    const p = String(r["Partido / Movimiento"] || "").trim().toUpperCase();
+    return canonPartido.get(claveNorm(p)) || p;
+  };
 
   const universoTemas = sortedUnique(incluidos.map(temaDe).filter(Boolean));
   const universoSectores = sortedUnique(incluidos.map(sectorDe).filter(Boolean));
@@ -181,7 +188,7 @@ export function construirMetrics(rawInstrumentos, rawConcejales, opciones = {}) 
     const conteo = new Map(); // concejal -> Map(partido -> n)
     for (const r of filas) {
       const cid = r.ID_Concejal;
-      const p = (r["Partido / Movimiento"] || "").trim().toUpperCase();
+      const p = partidoDe(r);
       if (!cid || !p) continue;
       if (!conteo.has(cid)) conteo.set(cid, new Map());
       const m = conteo.get(cid);

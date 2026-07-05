@@ -115,10 +115,14 @@ def construir_metrics(df: pd.DataFrame, nombres: dict, args) -> dict:
     df = df[~es_admin]
 
     # Canonizar categorias para que variantes por mayusculas/tildes no fragmenten.
+    # Incluye 'Partido / Movimiento': una tilde de diferencia ("DEMOCRÁTICO" vs
+    # "DEMOCRATICO") parte un partido en dos y distorsiona perfiles y convergencia.
     if col_tema in df.columns:
         df[col_tema] = canonicalizar_serie(df[col_tema])
     if "Sector" in df.columns:
         df["Sector"] = canonicalizar_serie(df["Sector"])
+    if "Partido / Movimiento" in df.columns:
+        df["Partido / Movimiento"] = canonicalizar_serie(df["Partido / Movimiento"])
 
     # Mapa DANE -> nombre de municipio (para etiquetar concejales y listar disponibles)
     dane_a_municipio: dict[str, str] = {}

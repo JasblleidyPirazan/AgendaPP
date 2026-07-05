@@ -1,3 +1,5 @@
+import { claveNorm } from "/src/metrics.js";
+
 export function renderAuditoria(root, ctx) {
   if (!ctx.raw) {
     root.innerHTML = `<p class="empty">
@@ -149,11 +151,69 @@ export function renderAuditoria(root, ctx) {
       `}
   `;
 
+  // --- Variantes de escritura unificables (Partido / Sector / Tematica) ---
+  // El pipeline las une automaticamente al calcular (canonizacion), pero aqui
+  // se delatan para corregirlas en la fuente y que no reaparezcan.
+  const CAMPOS_VARIANTES = ["Partido / Movimiento", "Sector", "Tematica"];
+  const gruposVariantes = [];
+  for (const campo of CAMPOS_VARIANTES) {
+    const porClave = new Map(); // claveNorm -> Map(variante -> {n, municipios:Set})
+    for (const r of instrumentos) {
+      const v = norm(r[campo]);
+      if (!v) continue;
+      const key = claveNorm(v);
+      if (!porClave.has(key)) porClave.set(key, new Map());
+      const m = porClave.get(key);
+      if (!m.has(v)) m.set(v, { n: 0, municipios: new Set() });
+      const e = m.get(v);
+      e.n++;
+      e.municipios.add(norm(r.municipio_origen) || norm(r.municipio) || "(sin municipio)");
+    }
+    for (const [, m] of porClave) {
+      if (m.size < 2) continue; // una sola forma de escribirlo: OK
+      const variantes = Array.from(m.entries()).sort((a, b) => b[1].n - a[1].n);
+      gruposVariantes.push({ campo, variantes });
+    }
+  }
+  gruposVariantes.sort((a, b) => a.campo.localeCompare(b.campo, "es"));
+
+  const seccionVariantes = `
+    <h3 style="margin-top:2rem">Variantes de escritura detectadas (${gruposVariantes.length})</h3>
+    <p style="color:var(--muted);font-size:0.9rem">
+      Valores que solo difieren en <strong>mayúsculas, tildes o espacios</strong>. El pipeline los unifica
+      automáticamente al calcular (usa la variante más frecuente), pero conviene estandarizarlos en el
+      Sheet del municipio para que no reaparezcan. La variante en <strong>negrilla</strong> es la que gana.
+    </p>
+    ${gruposVariantes.length === 0
+      ? '<p class="empty">Sin variantes: cada partido, sector y temática se escribe de una sola forma ✔</p>'
+      : `<div style="overflow-x:auto">
+          <table>
+            <thead><tr><th>Campo</th><th>Variantes (filas)</th><th>Dónde corregir</th></tr></thead>
+            <tbody>
+              ${gruposVariantes.map((g) => {
+                const [ganadora, ...resto] = g.variantes;
+                const vHTML = [`<strong>${ganadora[0]}</strong> (${ganadora[1].n})`]
+                  .concat(resto.map(([v, e]) => `${v} (${e.n})`)).join(" · ");
+                const munMinoritarios = Array.from(new Set(resto.flatMap(([, e]) => Array.from(e.municipios))))
+                  .sort((a, b) => a.localeCompare(b, "es")).join(", ");
+                return `<tr>
+                  <td>${g.campo}</td>
+                  <td>${vHTML}</td>
+                  <td style="font-size:0.85rem">${munMinoritarios || "—"}</td>
+                </tr>`;
+              }).join("")}
+            </tbody>
+          </table>
+        </div>`}
+  `;
+
   root.innerHTML = `
     <h2>Auditoría de datos (en vivo desde Apps Script)</h2>
     <p>Datos crudos del endpoint, sin transformar. Util para detectar correcciones necesarias en los Sheets.</p>
 
     ${diagMunicipios}
+
+    ${seccionVariantes}
 
     ${seccionSinTema}
 
