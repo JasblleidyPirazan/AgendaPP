@@ -105,7 +105,7 @@ El veredicto global toma la mayoría de partidos. El Shannon por partido (índic
 
 6. **ADMINISTRACION excluida.** Las filas con `Partido / Movimiento` o `ID_Concejal` que empiezan por `ADMINISTRAC...` (incl. "ADMINISTRACIÓN MUNICIPAL") representan iniciativas del ejecutivo, no del concejo. **El pipeline las excluye de todos los conteos y métricas por defecto** (Python y dashboard).
 
-7. **Canonización de categorías.** Antes de calcular, las variantes de `Tematica`/`Sector` que solo difieren en **mayúsculas, tildes o espacios** se unifican (se conserva la variante original más frecuente como etiqueta). Evita que, p. ej., "...e innovacion" y "...e Innovacion" cuenten como dos temas distintos y fragmenten Shannon/Jaccard/Pearson.
+7. **Canonización de categorías.** Antes de calcular, las variantes de `Tematica`/`Sector`/`Partido / Movimiento` que solo difieren en **mayúsculas, tildes o espacios** se unifican (se conserva la variante original más frecuente como etiqueta). Evita que, p. ej., "...e innovacion" y "...e Innovacion" cuenten como dos temas distintos, o que "PARTIDO CENTRO DEMOCRÁTICO" y "PARTIDO CENTRO DEMOCRATICO" partan un partido en dos y distorsionen perfiles y convergencia. La vista Auditoría del dashboard lista las variantes detectadas para corregirlas en la fuente.
 
 ## Referencias
 

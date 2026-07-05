@@ -74,3 +74,4 @@ Los tests cubren:
 - Convergencia (Sigelman & Buell 2004): idénticos→1, disjuntos→0, caso intermedio, simetría, perfil vacío→NaN, renormalización, equivalencia con la forma de diferencias.
 - Pearson (robustez): idénticos→1, opuestos→-1, varianza cero→NaN, formas incompatibles→ValueError.
 - `transform`: pivote, filtros de rol/incluir, universo de temas, binarización, perfil, mínimo de instrumentos.
+- Perfil por concejal (`conteos`): suma = n_instrumentos, Shannon reproducible, agregación reproduce el perfil del partido, categorías dentro del universo, coautorías, `version_esquema`.

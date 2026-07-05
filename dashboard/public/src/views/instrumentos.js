@@ -13,14 +13,18 @@ export function renderInstrumentos(root, ctx) {
   }
 
   const rowsRaw = ctx.raw.instrumentos.map((r) => enriquecer({ ...r }));
-  // Unifica variantes de Sector/Tematica que solo difieren en mayusculas,
-  // tildes o espacios (p. ej. "Ciencia, tecnologia e Innovacion" vs
-  // "...e innovacion"), igual que hace metrics.js para los indices.
+  // Unifica variantes de Sector/Tematica/Partido que solo difieren en
+  // mayusculas, tildes o espacios (p. ej. "Ciencia, tecnologia e Innovacion"
+  // vs "...e innovacion", "DEMOCRÁTICO" vs "DEMOCRATICO"), igual que hace
+  // metrics.js para los indices.
   const canonSector = construirCanon(rowsRaw.map((r) => r.Sector));
   const canonTematica = construirCanon(rowsRaw.map((r) => r.Tematica));
+  const canonPartido = construirCanon(rowsRaw.map((r) => r["Partido / Movimiento"]));
   for (const r of rowsRaw) {
     if (r.Sector) r.Sector = canonSector.get(claveNorm(r.Sector)) || String(r.Sector).trim();
     if (r.Tematica) r.Tematica = canonTematica.get(claveNorm(r.Tematica)) || String(r.Tematica).trim();
+    const p = r["Partido / Movimiento"];
+    if (p) r["Partido / Movimiento"] = canonPartido.get(claveNorm(p)) || String(p).trim();
   }
   const instrumentos = agregarPorIdInstrumento(rowsRaw);
 

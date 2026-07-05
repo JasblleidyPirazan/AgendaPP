@@ -160,10 +160,17 @@ export function construirMetrics(rawInstrumentos, rawConcejales, opciones = {}) 
 
   // Canonizacion de categorias: une variantes que solo difieren en
   // mayusculas / tildes / espacios (conserva la variante mas frecuente como etiqueta).
+  // Incluye partido: una tilde de diferencia ("DEMOCRÁTICO" vs "DEMOCRATICO")
+  // parte un partido en dos y distorsiona perfiles y convergencia.
   const canonTema = construirCanon(incluidos.map((r) => r[colTema]));
   const canonSector = construirCanon(incluidos.map((r) => r.Sector));
+  const canonPartido = construirCanon(incluidos.map((r) => String(r["Partido / Movimiento"] || "").trim().toUpperCase()));
   const temaDe = (r) => canonTema.get(claveNorm(r[colTema])) || String(r[colTema] || "").trim();
   const sectorDe = (r) => canonSector.get(claveNorm(r.Sector)) || String(r.Sector || "").trim();
+  const partidoDe = (r) => {
+    const p = String(r["Partido / Movimiento"] || "").trim().toUpperCase();
+    return canonPartido.get(claveNorm(p)) || p;
+  };
 
   const universoTemas = sortedUnique(incluidos.map(temaDe).filter(Boolean));
   const universoSectores = sortedUnique(incluidos.map(sectorDe).filter(Boolean));
@@ -181,7 +188,7 @@ export function construirMetrics(rawInstrumentos, rawConcejales, opciones = {}) 
     const conteo = new Map(); // concejal -> Map(partido -> n)
     for (const r of filas) {
       const cid = r.ID_Concejal;
-      const p = (r["Partido / Movimiento"] || "").trim().toUpperCase();
+      const p = partidoDe(r);
       if (!cid || !p) continue;
       if (!conteo.has(cid)) conteo.set(cid, new Map());
       const m = conteo.get(cid);
@@ -205,7 +212,8 @@ export function construirMetrics(rawInstrumentos, rawConcejales, opciones = {}) 
     m.set(t, (m.get(t) || 0) + 1);
   }
 
-  // H por concejal
+  // H por concejal + perfil tematico individual (conteos enteros crudos,
+  // no proporciones: cualquier calculo externo posterior queda exacto).
   const hPorConcejal = new Map();
   const conceales_out = [];
   for (const [cid, m] of matriz.entries()) {
@@ -220,6 +228,10 @@ export function construirMetrics(rawInstrumentos, rawConcejales, opciones = {}) 
       municipio: municipioDe(cid),
       n_instrumentos: n,
       shannon_norm: round(h, 4),
+      // Objeto disperso {categoria: n}: solo categorias con >= 1 instrumento.
+      // Un instrumento con k autores aporta 1 a cada autor (mismo criterio
+      // que n_instrumentos). Los ceros se derivan de universo_temas.
+      conteos: Object.fromEntries(m),
     });
   }
 
@@ -334,6 +346,8 @@ export function construirMetrics(rawInstrumentos, rawConcejales, opciones = {}) 
   return {
     generadoEn: new Date().toISOString(),
     parametros: {
+      // 2.1 = incluye conteos por concejal (perfil tematico individual).
+      version_esquema: "2.1",
       rol: opciones.roles || ROL_DEFAULT,
       tema: colTema,
       min_instrumentos: minInst,
