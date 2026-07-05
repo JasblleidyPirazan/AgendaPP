@@ -18,6 +18,8 @@ const SHEETS_FUENTE = [
   { municipio: 'ABREAQUI',       dane: '05004', fileId: '1fSwTyUiLeRvNkjSUs0YJJl3PTbJl-9tbsdBz8QN7eYY' },
   { municipio: 'ANGELOPOLIS',    dane: '05036', fileId: '1Sn7QcIm72hOGB4POFDyhyqfWEzalsLviCjavaQ8h78Q' },
   { municipio: 'SANTA ROSA DE OSOS', dane: '05686', fileId: '1_Ghr70yPZWRy3bsVpho93D1L4tK-im-DIZkrJWa_U1o' },
+  { municipio: 'BELLO',          dane: '05088', fileId: '1bHk7URfPjmLozqx0cSiba5z2K4I9kD4nKn9998ix0sA' },
+  { municipio: 'MEDELLIN',       dane: '05001', fileId: '1-kp6OSSoVkCwIpEy2u0CMbSucKPHEoBq' },
   { municipio: 'VALDIVIA',       dane: '05854', fileId: '1sbU9BuvPRusMBtRzX8WEHjWnkzkTISar8X-on22RJh8' },
 ];
 
