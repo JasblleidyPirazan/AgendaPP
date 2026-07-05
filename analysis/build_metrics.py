@@ -4,6 +4,10 @@ Uso:
     # Desde el endpoint Apps Script
     python build_metrics.py --url "https://script.google.com/macros/s/.../exec"
 
+    # Desde un volcado del endpoint guardado como archivo (abrir en el
+    # navegador <url>?recurso=todo y guardar la respuesta como .json)
+    python build_metrics.py --json endpoint_todo.json
+
     # Desde un xlsx local (modo fallback / desarrollo)
     python build_metrics.py --xlsx ../Guarne_DILIGENCIADO.xlsx
 
@@ -51,8 +55,12 @@ UMBRAL_N_CONCEJALES = 10
 
 def cargar(args) -> tuple[pd.DataFrame, dict]:
     """Devuelve (df_instrumentos, dict mapeo ID_Concejal -> Nombre completo)."""
-    if args.url:
-        data = fetch_endpoint(args.url, recurso="todo")
+    if args.url or args.json:
+        if args.url:
+            data = fetch_endpoint(args.url, recurso="todo")
+        else:
+            # Volcado del endpoint guardado como archivo (<url>?recurso=todo).
+            data = json.loads(Path(args.json).read_text(encoding="utf-8"))
         df = pd.DataFrame(data["instrumentos"])
         nombres = {c["ID_Concejal"]: c.get("Nombre completo", "") for c in data.get("concejales", []) if c.get("ID_Concejal")}
     elif args.xlsx:
@@ -60,7 +68,7 @@ def cargar(args) -> tuple[pd.DataFrame, dict]:
         df = d["instrumentos"]
         nombres = dict(zip(d["concejales"]["ID_Concejal"], d["concejales"]["Nombre completo"]))
     else:
-        raise SystemExit("Debe especificar --url o --xlsx")
+        raise SystemExit("Debe especificar --url, --json o --xlsx")
 
     # Normalizacion de columnas
     df.columns = [str(c).strip() for c in df.columns]
@@ -288,6 +296,7 @@ def construir_metrics(df: pd.DataFrame, nombres: dict, args) -> dict:
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--url", help="URL del Web App Apps Script")
+    p.add_argument("--json", help="Ruta a un volcado JSON del endpoint (respuesta de ?recurso=todo)")
     p.add_argument("--xlsx", help="Ruta a un Excel local (fallback)")
     p.add_argument("--rol", default="Proponente,Ponente", help="Rol(es) separados por coma")
     p.add_argument("--tema", default="Tematica", choices=["Sector", "Tematica", "Tema segun Concejo"])
