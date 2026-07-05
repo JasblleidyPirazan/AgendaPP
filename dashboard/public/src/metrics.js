@@ -212,7 +212,8 @@ export function construirMetrics(rawInstrumentos, rawConcejales, opciones = {}) 
     m.set(t, (m.get(t) || 0) + 1);
   }
 
-  // H por concejal
+  // H por concejal + perfil tematico individual (conteos enteros crudos,
+  // no proporciones: cualquier calculo externo posterior queda exacto).
   const hPorConcejal = new Map();
   const conceales_out = [];
   for (const [cid, m] of matriz.entries()) {
@@ -227,6 +228,10 @@ export function construirMetrics(rawInstrumentos, rawConcejales, opciones = {}) 
       municipio: municipioDe(cid),
       n_instrumentos: n,
       shannon_norm: round(h, 4),
+      // Objeto disperso {categoria: n}: solo categorias con >= 1 instrumento.
+      // Un instrumento con k autores aporta 1 a cada autor (mismo criterio
+      // que n_instrumentos). Los ceros se derivan de universo_temas.
+      conteos: Object.fromEntries(m),
     });
   }
 
@@ -341,6 +346,8 @@ export function construirMetrics(rawInstrumentos, rawConcejales, opciones = {}) 
   return {
     generadoEn: new Date().toISOString(),
     parametros: {
+      // 2.1 = incluye conteos por concejal (perfil tematico individual).
+      version_esquema: "2.1",
       rol: opciones.roles || ROL_DEFAULT,
       tema: colTema,
       min_instrumentos: minInst,
