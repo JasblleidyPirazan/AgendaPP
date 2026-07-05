@@ -68,11 +68,89 @@ export function renderAuditoria(root, ctx) {
     </div>
   `;
 
+  // --- Instrumentos (únicos) con Sector Y Temática vacíos ---
+  // Se agrega por id_instrumento porque un instrumento aparece en varias filas
+  // (una por actor): basta con que UNA fila traiga Sector o Tematica.
+  const porInst = new Map();
+  for (const r of instrumentos) {
+    if (!norm(r.Identificador)) continue;
+    const dane = norm(r["Codigo DANE"]).padStart(5, "0");
+    const id = norm(r.id_instrumento) || `${dane}-${norm(r.Identificador)}`;
+    if (!porInst.has(id)) porInst.set(id, {
+      id,
+      mun: norm(r.municipio_origen) || norm(r.municipio) || "(sin municipio)",
+      anio: norm(r.Anio) || "—",
+      titulo: norm(r.Titulo),
+      incluir: norm(r["Incluir en analisis"]) || "—",
+      conSector: false,
+      conTema: false,
+    });
+    const g = porInst.get(id);
+    if (norm(r.Sector)) g.conSector = true;
+    if (norm(r.Tematica)) g.conTema = true;
+    if (!g.titulo && norm(r.Titulo)) g.titulo = norm(r.Titulo);
+  }
+  const sinSectorNiTema = Array.from(porInst.values())
+    .filter((i) => !i.conSector && !i.conTema)
+    .sort((a, b) => a.mun.localeCompare(b.mun, "es") || a.id.localeCompare(b.id, "es"));
+
+  const sinTemaPorMun = new Map();
+  for (const i of sinSectorNiTema) {
+    sinTemaPorMun.set(i.mun, (sinTemaPorMun.get(i.mun) || 0) + 1);
+  }
+  const resumenSinTema = Array.from(sinTemaPorMun.entries())
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "es"));
+
+  const MAX_SIN_TEMA = 300;
+  const seccionSinTema = `
+    <h3 style="margin-top:2rem">Instrumentos sin Sector ni Temática (${sinSectorNiTema.length})</h3>
+    <p style="color:var(--muted);font-size:0.9rem">
+      Instrumentos únicos donde <strong>ninguna</strong> fila trae Sector ni Tematica.
+      En las gráficas aparecen como <strong>(vacío)</strong> y no entran a los índices: hay que completarlos en el Sheet del municipio.
+    </p>
+    ${sinSectorNiTema.length === 0
+      ? '<p class="empty">Todos los instrumentos tienen Sector o Temática ✔</p>'
+      : `
+        <table style="max-width:480px">
+          <thead><tr><th>Municipio</th><th>Instrumentos sin Sector ni Temática</th></tr></thead>
+          <tbody>
+            ${resumenSinTema.map(([mun, n]) => `
+              <tr><td><strong>${mun}</strong></td><td style="text-align:center" class="tag-bad">${n}</td></tr>
+            `).join("")}
+          </tbody>
+        </table>
+
+        <div style="overflow-x:auto;margin-top:1rem">
+          <table>
+            <thead><tr><th>ID</th><th>Municipio</th><th>Año</th><th>Título</th><th>Incluir</th></tr></thead>
+            <tbody>
+              ${sinSectorNiTema.slice(0, MAX_SIN_TEMA).map((i) => `
+                <tr>
+                  <td><code>${i.id}</code></td>
+                  <td>${i.mun}</td>
+                  <td style="text-align:center">${i.anio}</td>
+                  <td>${(i.titulo || "—").slice(0, 90)}${i.titulo.length > 90 ? "…" : ""}</td>
+                  <td style="text-align:center">${i.incluir}</td>
+                </tr>
+              `).join("")}
+              ${sinSectorNiTema.length > MAX_SIN_TEMA
+                ? `<tr><td colspan="5" style="text-align:center;color:var(--muted);font-style:italic">
+                    ... mostrando primeros ${MAX_SIN_TEMA} de ${sinSectorNiTema.length}.
+                  </td></tr>`
+                : ""}
+            </tbody>
+          </table>
+        </div>
+      `}
+  `;
+
   root.innerHTML = `
     <h2>Auditoría de datos (en vivo desde Apps Script)</h2>
     <p>Datos crudos del endpoint, sin transformar. Util para detectar correcciones necesarias en los Sheets.</p>
 
     ${diagMunicipios}
+
+    ${seccionSinTema}
 
     <h3>Validaciones detectadas (${validaciones.length})</h3>
     ${validaciones.length === 0

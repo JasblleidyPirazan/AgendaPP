@@ -2,6 +2,8 @@
 // Actores (Rol + Concejal + Partido) se agregan en columnas/listas.
 // Conteos y barras de frecuencia trabajan sobre instrumentos unicos.
 
+import { construirCanon, claveNorm } from "/src/metrics.js";
+
 export function renderInstrumentos(root, ctx) {
   if (!ctx.raw || !Array.isArray(ctx.raw.instrumentos)) {
     root.innerHTML = `<p class="empty">
@@ -10,7 +12,16 @@ export function renderInstrumentos(root, ctx) {
     return;
   }
 
-  const rowsRaw = ctx.raw.instrumentos.map(enriquecer);
+  const rowsRaw = ctx.raw.instrumentos.map((r) => enriquecer({ ...r }));
+  // Unifica variantes de Sector/Tematica que solo difieren en mayusculas,
+  // tildes o espacios (p. ej. "Ciencia, tecnologia e Innovacion" vs
+  // "...e innovacion"), igual que hace metrics.js para los indices.
+  const canonSector = construirCanon(rowsRaw.map((r) => r.Sector));
+  const canonTematica = construirCanon(rowsRaw.map((r) => r.Tematica));
+  for (const r of rowsRaw) {
+    if (r.Sector) r.Sector = canonSector.get(claveNorm(r.Sector)) || String(r.Sector).trim();
+    if (r.Tematica) r.Tematica = canonTematica.get(claveNorm(r.Tematica)) || String(r.Tematica).trim();
+  }
   const instrumentos = agregarPorIdInstrumento(rowsRaw);
 
   const sectores = sorted(unique(instrumentos.flatMap((i) => i.Sector ? [i.Sector] : [])));
