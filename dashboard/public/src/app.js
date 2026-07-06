@@ -97,6 +97,7 @@ async function main() {
 
   const btnRecalc = document.getElementById("btn-recalcular");
   const btnDescargar = document.getElementById("btn-descargar");
+  const btnDescargarClasif = document.getElementById("btn-descargar-clasif");
   const estado = document.getElementById("estado-recalculo");
 
   if (!ctx.config.appsScriptUrl) {
@@ -160,6 +161,55 @@ async function main() {
     URL.revokeObjectURL(url);
     const doble = ctx.raw && Array.isArray(ctx.raw.instrumentos);
     estado.textContent = `↓ ${filename}${doble ? " (Temática + Sector)" : ""}`;
+    setTimeout(() => { estado.textContent = ""; }, 6000);
+  });
+
+  // Descarga separada por Clasificacion legal: un bloque de metricas completo
+  // (Tematica + Sector) por cada clasificacion presente (Acuerdo, Proyecto de
+  // Acuerdo, ...). Respeta roles y municipios activos; el filtro de
+  // clasificacion de la barra NO aplica aqui (la particion lo reemplaza).
+  if (!ctx.raw || !Array.isArray(ctx.raw.instrumentos)) {
+    btnDescargarClasif.disabled = true;
+    btnDescargarClasif.title = "Requiere el endpoint Apps Script (configura appsScriptUrl en config.json).";
+  }
+  btnDescargarClasif.addEventListener("click", () => {
+    const ts = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+    const filename = `agendapp_metrics_por_clasificacion_${ts}.json`;
+    const base = ctx._filtros || {};
+    const filtrosBase = { roles: base.roles, municipios: base.municipios };
+
+    const clasificaciones = Array.from(new Set(
+      ctx.raw.instrumentos.map((r) => String(r["Clasificacion legal"] ?? "").trim())
+    )).sort((a, b) => a.localeCompare(b, "es"));
+
+    const porClasificacion = {};
+    for (const c of clasificaciones) {
+      const etiqueta = c || "(sin clasificacion)";
+      porClasificacion[etiqueta] = {
+        por_tematica: construirMetrics(ctx.raw.instrumentos, ctx.raw.concejales, { ...filtrosBase, clasificaciones: [c], colTema: "Tematica" }),
+        por_sector: construirMetrics(ctx.raw.instrumentos, ctx.raw.concejales, { ...filtrosBase, clasificaciones: [c], colTema: "Sector" }),
+      };
+    }
+
+    const payload = {
+      generadoEn: new Date().toISOString(),
+      filtros: {
+        roles: filtrosBase.roles ?? "todos",
+        municipios: (filtrosBase.municipios && filtrosBase.municipios.length) ? filtrosBase.municipios : "todos",
+        particion: "Clasificacion legal",
+      },
+      clasificaciones: Object.keys(porClasificacion),
+      por_clasificacion: porClasificacion,
+    };
+
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+    estado.textContent = `↓ ${filename} (${Object.keys(porClasificacion).length} clasificaciones × Temática + Sector)`;
     setTimeout(() => { estado.textContent = ""; }, 6000);
   });
 
