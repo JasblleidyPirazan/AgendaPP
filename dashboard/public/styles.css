@@ -259,7 +259,18 @@ h3 { font-size: 1.05rem; letter-spacing: -0.01em; }
 
 .nota { color: var(--muted); font-size: 0.82rem; margin-top: 0.5rem; }
 
-/* Banner de fallo del endpoint Apps Script (con boton Reintentar) */
+/* Banner de estado del endpoint Apps Script (cargando / fallo con Reintentar).
+   El display:flex le ganaria al [hidden] del navegador, asi que se anula
+   explicitamente. */
+.aviso-endpoint[hidden] { display: none; }
+
+.aviso-endpoint.cargando {
+  background: var(--accent-soft);
+  border-color: var(--border);
+  color: var(--muted);
+  font-style: italic;
+}
+
 .aviso-endpoint {
   background: var(--warn-soft);
   border: 1px solid var(--warn-border);

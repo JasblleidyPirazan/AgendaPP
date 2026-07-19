@@ -59,30 +59,50 @@ async function cargarRaw(appsScriptUrl, { nocache = false, intentos = 3 } = {}) 
   throw ultimoError;
 }
 
+// Carga SOLO lo necesario para el primer pintado (config + metrics.json).
+// La data cruda del endpoint se pide despues, en segundo plano, para que un
+// endpoint caido o lento nunca deje la pagina en blanco.
 async function loadAll() {
   let config = { appsScriptUrl: "" };
-  try { config = await fetchJSON("/config.json"); } catch (_) { /* ok */ }
+  try { config = await fetchJSON("/config.json", 15000); } catch (_) { /* ok */ }
 
   let metrics = null;
   try {
-    metrics = await fetchJSON("/data/metrics.json");
+    metrics = await fetchJSON("/data/metrics.json", 30000);
   } catch (e) {
     showError("No se pudo cargar /data/metrics.json. Corre `python build_metrics.py` en analysis/.");
     return null;
   }
 
-  let raw = null;
-  let rawError = null;
-  if (config.appsScriptUrl) {
-    try {
-      raw = await cargarRaw(config.appsScriptUrl);
-    } catch (e) {
-      rawError = e.message;
-      console.warn("No se pudo cargar endpoint Apps Script:", e.message);
-    }
-  }
+  return { config, metrics, raw: null, rawError: null };
+}
 
-  return { config, metrics, raw, rawError };
+// Pide la data cruda sin bloquear el primer render. Mientras carga, el banner
+// informa; al llegar, reconstruye filtros y vista activa; si falla, muestra
+// el error con boton Reintentar.
+function cargarRawEnSegundoPlano(ctx) {
+  if (!ctx.config.appsScriptUrl) return;
+  const el = document.getElementById("aviso-endpoint");
+  if (el) {
+    el.hidden = false;
+    el.classList.add("cargando");
+    el.innerHTML = "⏳ Cargando data en vivo del endpoint Apps Script… (mientras tanto se muestra el metrics.json precalculado)";
+  }
+  cargarRaw(ctx.config.appsScriptUrl, { intentos: 2 })
+    .then((raw) => {
+      ctx.raw = raw;
+      ctx.rawError = null;
+      if (el) el.classList.remove("cargando");
+      pintarAvisoEndpoint(ctx); // lo oculta
+      // configurarFiltros -> recompute() recalcula metrics y repinta la vista activa
+      configurarFiltros(ctx);
+    })
+    .catch((e) => {
+      ctx.rawError = e.message;
+      console.warn("No se pudo cargar endpoint Apps Script:", e.message);
+      if (el) el.classList.remove("cargando");
+      pintarAvisoEndpoint(ctx);
+    });
 }
 
 // Banner de estado del endpoint: visible cuando la data cruda no cargo, con
@@ -142,22 +162,37 @@ function activarVista(nombre, ctx) {
   if (render) render(target, ctx);
 }
 
-function esperarPlotly() {
+// Espera a Plotly con tope: si el CDN no responde, la pagina igual debe
+// renderizar (tablas y tarjetas); solo las graficas muestran un aviso.
+function esperarPlotly(maxMs = 10000) {
   return new Promise((resolve) => {
-    if (window.Plotly) return resolve();
+    if (window.Plotly) return resolve(true);
+    let transcurrido = 0;
     const id = setInterval(() => {
-      if (window.Plotly) { clearInterval(id); resolve(); }
+      transcurrido += 50;
+      if (window.Plotly) { clearInterval(id); resolve(true); }
+      else if (transcurrido >= maxMs) { clearInterval(id); resolve(false); }
     }, 50);
   });
 }
 
+function instalarPlotlyFallback() {
+  window.Plotly = {
+    newPlot(id) {
+      const el = typeof id === "string" ? document.getElementById(id) : id;
+      if (el) el.innerHTML = '<p class="empty">No se pudo cargar la librería de gráficas (cdn.plot.ly). Revisa la conexión y recarga la página.</p>';
+      return Promise.resolve();
+    },
+  };
+}
+
 async function main() {
-  await esperarPlotly();
+  const plotlyListo = await esperarPlotly();
+  if (!plotlyListo) instalarPlotlyFallback();
   const ctx = await loadAll();
   if (!ctx) return;
 
   refrescarTimestamp(ctx);
-  pintarAvisoEndpoint(ctx);
 
   document.querySelectorAll("nav button").forEach((b) => {
     b.addEventListener("click", () => activarVista(b.dataset.view, ctx));
@@ -291,6 +326,7 @@ async function main() {
 
   configurarFiltros(ctx);
   activarVista("resumen", ctx);
+  cargarRawEnSegundoPlano(ctx);
 }
 
 const DEFAULT_ROLES = ["Proponente", "Ponente", "Coordinador"];
