@@ -259,6 +259,36 @@ h3 { font-size: 1.05rem; letter-spacing: -0.01em; }
 
 .nota { color: var(--muted); font-size: 0.82rem; margin-top: 0.5rem; }
 
+/* Banner de fallo del endpoint Apps Script (con boton Reintentar) */
+.aviso-endpoint {
+  background: var(--warn-soft);
+  border: 1px solid var(--warn-border);
+  color: #78350f;
+  border-radius: var(--radius-sm);
+  padding: 0.8rem 1.1rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.9rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.aviso-endpoint button {
+  padding: 0.35rem 0.85rem;
+  border: 1px solid var(--warn);
+  background: var(--surface);
+  color: var(--warn);
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: inherit;
+}
+
+.aviso-endpoint button:hover { background: var(--warn); color: #fff; }
+.aviso-endpoint button:disabled { opacity: 0.6; cursor: wait; }
+
 /* ---------- Tablas ---------- */
 
 table {

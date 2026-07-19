@@ -26,10 +26,37 @@ const VIEWS = {
   auditoria: renderAuditoria,
 };
 
-async function fetchJSON(url) {
-  const r = await fetch(url);
-  if (!r.ok) throw new Error(`HTTP ${r.status} en ${url}`);
-  return r.json();
+async function fetchJSON(url, timeoutMs = 120000) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const r = await fetch(url, { signal: ctrl.signal });
+    if (!r.ok) throw new Error(`HTTP ${r.status} en ${url}`);
+    return r.json();
+  } catch (e) {
+    throw e.name === "AbortError" ? new Error(`Timeout (${timeoutMs / 1000}s) en ${url}`) : e;
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+// El endpoint Apps Script a veces falla de forma transitoria (cuota de Google,
+// respuesta lenta con muchos municipios). Se reintenta con espera creciente
+// antes de rendirse, y el error final queda visible en un banner con boton
+// "Reintentar" (antes solo se veia un console.warn y las vistas quedaban
+// vacias sin explicacion).
+async function cargarRaw(appsScriptUrl, { nocache = false, intentos = 3 } = {}) {
+  const url = `${appsScriptUrl}?recurso=todo${nocache ? "&nocache=1" : ""}`;
+  let ultimoError = null;
+  for (let i = 0; i < intentos; i++) {
+    try {
+      return await fetchJSON(url);
+    } catch (e) {
+      ultimoError = e;
+      if (i < intentos - 1) await new Promise((r) => setTimeout(r, 1500 * (i + 1)));
+    }
+  }
+  throw ultimoError;
 }
 
 async function loadAll() {
@@ -45,15 +72,55 @@ async function loadAll() {
   }
 
   let raw = null;
+  let rawError = null;
   if (config.appsScriptUrl) {
     try {
-      raw = await fetchJSON(`${config.appsScriptUrl}?recurso=todo`);
+      raw = await cargarRaw(config.appsScriptUrl);
     } catch (e) {
+      rawError = e.message;
       console.warn("No se pudo cargar endpoint Apps Script:", e.message);
     }
   }
 
-  return { config, metrics, raw };
+  return { config, metrics, raw, rawError };
+}
+
+// Banner de estado del endpoint: visible cuando la data cruda no cargo, con
+// el error real y un boton para reintentar sin recargar la pagina.
+function pintarAvisoEndpoint(ctx) {
+  const el = document.getElementById("aviso-endpoint");
+  if (!el) return;
+  if (ctx.raw || !ctx.config.appsScriptUrl) { el.hidden = true; return; }
+  el.hidden = false;
+  el.innerHTML = `
+    <strong>⚠ No se pudo cargar la data cruda del endpoint Apps Script.</strong>
+    Las vistas en vivo (Contadores, Auditoría, filtros) quedan deshabilitadas y se muestra solo
+    el <code>metrics.json</code> precalculado.
+    <span style="opacity:.85">Error: ${ctx.rawError || "desconocido"}.</span>
+    <button id="btn-reintentar-raw" type="button">↻ Reintentar</button>
+    <span id="estado-reintento" style="font-style:italic"></span>
+  `;
+  const btn = document.getElementById("btn-reintentar-raw");
+  const estado = document.getElementById("estado-reintento");
+  btn.addEventListener("click", async () => {
+    btn.disabled = true;
+    estado.textContent = "Cargando…";
+    try {
+      const raw = await cargarRaw(ctx.config.appsScriptUrl, { nocache: true });
+      ctx.raw = raw;
+      ctx.rawError = null;
+      ctx.metrics = construirMetrics(raw.instrumentos, raw.concejales, {});
+      el.hidden = true;
+      refrescarTimestamp(ctx);
+      configurarFiltros(ctx);
+      const vista = document.querySelector("nav button.active")?.dataset.view || "resumen";
+      activarVista(vista, ctx);
+    } catch (e) {
+      ctx.rawError = e.message;
+      estado.textContent = `✗ Siguió fallando: ${e.message}`;
+      btn.disabled = false;
+    }
+  });
 }
 
 function showError(msg) {
@@ -90,6 +157,7 @@ async function main() {
   if (!ctx) return;
 
   refrescarTimestamp(ctx);
+  pintarAvisoEndpoint(ctx);
 
   document.querySelectorAll("nav button").forEach((b) => {
     b.addEventListener("click", () => activarVista(b.dataset.view, ctx));
@@ -109,19 +177,27 @@ async function main() {
     btnRecalc.disabled = true;
     estado.textContent = "Obteniendo datos del endpoint…";
     try {
-      const raw = await fetchJSON(`${ctx.config.appsScriptUrl}?recurso=todo&nocache=1`);
+      const teniaRaw = !!(ctx.raw && Array.isArray(ctx.raw.instrumentos));
+      const raw = await cargarRaw(ctx.config.appsScriptUrl, { nocache: true });
       ctx.raw = raw;
+      ctx.rawError = null;
       estado.textContent = "Calculando índices…";
       // pequeña pausa para que pinte el "Calculando..."
       await new Promise((r) => setTimeout(r, 16));
       const nuevasMetrics = construirMetrics(raw.instrumentos, raw.concejales, {});
       ctx.metrics = nuevasMetrics;
       refrescarTimestamp(ctx);
+      pintarAvisoEndpoint(ctx);
+      // Si la carga inicial habia fallado, la barra de filtros quedo vacia:
+      // reconstruirla ahora que hay data cruda.
+      if (!teniaRaw) configurarFiltros(ctx);
       const vistaActiva = document.querySelector("nav button.active")?.dataset.view || "resumen";
       activarVista(vistaActiva, ctx);
       estado.textContent = `✓ Recalculado ${new Date(nuevasMetrics.generadoEn).toLocaleTimeString("es-CO")}`;
       setTimeout(() => { estado.textContent = ""; }, 8000);
     } catch (err) {
+      ctx.rawError = err.message;
+      pintarAvisoEndpoint(ctx);
       estado.textContent = `✗ Error: ${err.message}`;
       console.error(err);
     } finally {
@@ -230,8 +306,8 @@ function configurarFiltros(ctx) {
   barra.hidden = false;
 
   const tieneRaw = ctx.raw && Array.isArray(ctx.raw.instrumentos) && ctx.raw.instrumentos.length;
+  barra.classList.toggle("deshabilitado", !tieneRaw);
   if (!tieneRaw) {
-    barra.classList.add("deshabilitado");
     contRoles.innerHTML = "";
     contMun.innerHTML = "";
     estado.textContent = "Filtros en vivo: requieren el endpoint Apps Script (configura appsScriptUrl en config.json).";

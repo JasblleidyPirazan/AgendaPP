@@ -6,7 +6,10 @@
 export function renderContadores(root, ctx) {
   if (!ctx.raw || !Array.isArray(ctx.raw.instrumentos)) {
     root.innerHTML = `<p class="empty">
-      Esta vista cuenta desde la data cruda: requiere el endpoint Apps Script.
+      Esta vista cuenta desde la data cruda y el endpoint Apps Script no respondió.
+      Usa el botón <strong>↻ Reintentar</strong> del aviso de arriba (o <strong>↻ Recalcular</strong>)
+      para volver a cargarla; si persiste, revisa que la URL de <code>config.json</code>
+      siga vigente y que el Web App esté desplegado para "Cualquier persona".
     </p>`;
     return;
   }
