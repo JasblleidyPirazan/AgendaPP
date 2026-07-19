@@ -40,23 +40,64 @@ async function fetchJSON(url, timeoutMs = 120000) {
   }
 }
 
-// El endpoint Apps Script a veces falla de forma transitoria (cuota de Google,
-// respuesta lenta con muchos municipios). Se reintenta con espera creciente
-// antes de rendirse, y el error final queda visible en un banner con boton
-// "Reintentar" (antes solo se veia un console.warn y las vistas quedaban
-// vacias sin explicacion).
-async function cargarRaw(appsScriptUrl, { nocache = false, intentos = 3 } = {}) {
+// Carga la data cruda tolerando el bloqueo CORS de Apps Script. El fetch
+// cross-origin a un Web App suele fallar con "Failed to fetch" (la redireccion
+// de Google no es legible por CORS), asi que si el fetch directo falla se cae
+// a JSONP: la respuesta se carga como <script>, que no pasa por CORS. Requiere
+// que el endpoint soporte ?callback= (ver apps-script/src/WebApp.gs).
+// Ademas se reintenta por si el fallo es transitorio (cuota, respuesta lenta).
+async function cargarRaw(appsScriptUrl, { nocache = false, intentos = 2 } = {}) {
   const url = `${appsScriptUrl}?recurso=todo${nocache ? "&nocache=1" : ""}`;
   let ultimoError = null;
   for (let i = 0; i < intentos; i++) {
     try {
-      return await fetchJSON(url);
+      return validarRaw(await fetchJSON(url, 60000));
     } catch (e) {
       ultimoError = e;
-      if (i < intentos - 1) await new Promise((r) => setTimeout(r, 1500 * (i + 1)));
     }
+    try {
+      return validarRaw(await cargarRawJSONP(appsScriptUrl, { nocache }));
+    } catch (e) {
+      ultimoError = e;
+    }
+    if (i < intentos - 1) await new Promise((r) => setTimeout(r, 1500 * (i + 1)));
   }
   throw ultimoError;
+}
+
+// Apps Script devuelve {error, stack} (como JSON/JSONP legible) cuando doGet
+// lanza. Eso no es data utilizable: se convierte en error para que el banner
+// muestre el mensaje real en vez de dejar las vistas vacias.
+function validarRaw(data) {
+  if (data && data.error && !Array.isArray(data.instrumentos)) {
+    throw new Error(`El endpoint respondió con error: ${data.error}`);
+  }
+  return data;
+}
+
+// Carga vía <script> (JSONP): inmune al bloqueo CORS del fetch cross-origin.
+let jsonpSeq = 0;
+function cargarRawJSONP(appsScriptUrl, { nocache = false, timeoutMs = 60000 } = {}) {
+  return new Promise((resolve, reject) => {
+    const cb = `__agendappJSONP_${Date.now()}_${jsonpSeq++}`;
+    const sep = appsScriptUrl.includes("?") ? "&" : "?";
+    const url = `${appsScriptUrl}${sep}recurso=todo&callback=${cb}${nocache ? "&nocache=1" : ""}`;
+    const script = document.createElement("script");
+    let hecho = false;
+    const limpiar = () => {
+      hecho = true;
+      try { delete window[cb]; } catch (_) { window[cb] = undefined; }
+      clearTimeout(t);
+      script.remove();
+    };
+    const t = setTimeout(() => {
+      if (!hecho) { limpiar(); reject(new Error(`Timeout JSONP (${timeoutMs / 1000}s)`)); }
+    }, timeoutMs);
+    window[cb] = (data) => { if (!hecho) { limpiar(); resolve(data); } };
+    script.onerror = () => { if (!hecho) { limpiar(); reject(new Error("Failed to fetch (JSONP)")); } };
+    script.src = url;
+    document.head.appendChild(script);
+  });
 }
 
 // Carga SOLO lo necesario para el primer pintado (config + metrics.json).

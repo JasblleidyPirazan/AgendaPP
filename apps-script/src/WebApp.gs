@@ -1,16 +1,21 @@
 /**
- * Web App: expone la consolidacion como JSON.
+ * Web App: expone la consolidacion como JSON (o JSONP).
  *
  * Parametros:
  *   ?recurso=todo|instrumentos|concejales|partidos|municipios|validaciones (default: todo)
  *   ?token=... (si TOKEN_REQUERIDO != '')
  *   ?nocache=1 (fuerza re-lectura)
+ *   ?callback=fn  -> respuesta JSONP: fn({...}). Permite que un sitio estatico
+ *                    en otro dominio (Netlify) consuma la data sin toparse con
+ *                    el bloqueo CORS del fetch cross-origin de Apps Script.
  */
 function doGet(e) {
+  const params = (e && e.parameter) || {};
+  const callback = sanitizarCallback_(params.callback);
   try {
-    return doGetInner_(e);
+    return responder_(doGetInner_(e), callback);
   } catch (err) {
-    return jsonResponse_({ error: String(err && err.message || err), stack: err && err.stack });
+    return responder_({ error: String((err && err.message) || err), stack: err && err.stack }, callback);
   }
 }
 
@@ -18,7 +23,7 @@ function doGetInner_(e) {
   const params = (e && e.parameter) || {};
 
   if (TOKEN_REQUERIDO && params.token !== TOKEN_REQUERIDO) {
-    return jsonResponse_({ error: 'Token invalido o ausente' }, 401);
+    return { error: 'Token invalido o ausente' };
   }
 
   const recurso = (params.recurso || 'todo').toLowerCase();
@@ -26,29 +31,21 @@ function doGetInner_(e) {
 
   const data = obtenerConCache_(usarCache);
 
-  let payload;
   switch (recurso) {
     case 'instrumentos':
-      payload = { generadoEn: data.generadoEn, instrumentos: data.instrumentos };
-      break;
+      return { generadoEn: data.generadoEn, instrumentos: data.instrumentos };
     case 'concejales':
-      payload = { generadoEn: data.generadoEn, concejales: data.concejales };
-      break;
+      return { generadoEn: data.generadoEn, concejales: data.concejales };
     case 'partidos':
-      payload = { generadoEn: data.generadoEn, partidos: data.partidos };
-      break;
+      return { generadoEn: data.generadoEn, partidos: data.partidos };
     case 'municipios':
-      payload = { generadoEn: data.generadoEn, municipios: data.municipios };
-      break;
+      return { generadoEn: data.generadoEn, municipios: data.municipios };
     case 'validaciones':
-      payload = { generadoEn: data.generadoEn, validaciones: data.validaciones };
-      break;
+      return { generadoEn: data.generadoEn, validaciones: data.validaciones };
     case 'todo':
     default:
-      payload = data;
+      return data;
   }
-
-  return jsonResponse_(payload);
 }
 
 function obtenerConCache_(usarCache) {
@@ -68,10 +65,22 @@ function obtenerConCache_(usarCache) {
   return data;
 }
 
-function jsonResponse_(obj, _status) {
-  // ContentService de Apps Script no soporta codigos de estado custom,
-  // pero el campo 'error' lo deja claro al consumidor.
+// Solo se aceptan nombres de callback que sean identificadores JS seguros,
+// para no inyectar codigo arbitrario en la respuesta JSONP.
+function sanitizarCallback_(cb) {
+  if (!cb) return '';
+  return /^[A-Za-z_$][A-Za-z0-9_$.]*$/.test(cb) ? cb : '';
+}
+
+// Devuelve JSON normal, o JSONP (fn(...)) si vino un callback valido.
+function responder_(obj, callback) {
+  const json = JSON.stringify(obj);
+  if (callback) {
+    return ContentService
+      .createTextOutput(callback + '(' + json + ');')
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
   return ContentService
-    .createTextOutput(JSON.stringify(obj))
+    .createTextOutput(json)
     .setMimeType(ContentService.MimeType.JSON);
 }
