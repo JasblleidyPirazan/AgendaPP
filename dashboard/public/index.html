@@ -3,7 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Análisis temático de agendas de concejales municipales" />
+  <meta name="theme-color" content="#4f46e5" />
   <title>AgendaPP — Dashboard</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
   <link rel="stylesheet" href="/styles.css" />
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" defer></script>
 </head>
@@ -15,7 +21,7 @@
         <p class="subtitle">Análisis temático de agendas de concejales municipales</p>
       </div>
       <div class="acciones">
-        <button id="btn-recalcular" title="Vuelve a pedir datos crudos al endpoint (con nocache=1) y recalcula Shannon/Jaccard/Pearson en el navegador.">
+        <button id="btn-recalcular" class="primario" title="Vuelve a pedir datos crudos al endpoint (con nocache=1) y recalcula Shannon/Jaccard/Pearson en el navegador.">
           ↻ Recalcular
         </button>
         <button id="btn-descargar" title="Descarga las métricas en JSON con los filtros activos, calculadas por Temática y por Sector (si hay endpoint).">
@@ -80,7 +86,7 @@
   <footer>
     <span id="generado-en"></span>
     <span class="separator">•</span>
-    <a href="https://github.com/" target="_blank" rel="noreferrer">repo</a>
+    <a href="https://github.com/JasblleidyPirazan/AgendaPP" target="_blank" rel="noreferrer">repo</a>
   </footer>
 
   <script type="module" src="/src/app.js"></script>

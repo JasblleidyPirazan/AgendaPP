@@ -34,7 +34,7 @@ export function renderJaccard(root, ctx) {
     y: partidos.map((p) => p.nombre),
     type: "bar",
     orientation: "h",
-    marker: { color: partidos.map((p) => p.jaccard_intra >= umbral ? "#2ca02c" : "#d62728") },
+    marker: { color: partidos.map((p) => p.jaccard_intra >= umbral ? "#15803d" : "#dc2626") },
   }], {
     xaxis: { title: "Jaccard pareado promedio", range: [0, 1] },
     shapes: [{ type: "line", x0: umbral, x1: umbral, y0: 0, y1: 1, yref: "paper", line: { dash: "dash" } }],

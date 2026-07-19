@@ -10,7 +10,7 @@ export function renderShannonPartido(root, ctx) {
     <h2>Diversidad temática por partido (Shannon del bloque)</h2>
     <details style="margin-bottom:1rem">
       <summary style="cursor:pointer;font-weight:600">¿Qué mide? (clic para expandir)</summary>
-      <div style="padding:0.75rem 1rem;background:#fafbfd;border-left:3px solid var(--accent);margin-top:0.5rem">
+      <div style="padding:0.75rem 1rem;background:var(--surface-2);border-left:3px solid var(--accent);margin-top:0.5rem">
         <p>Shannon normalizado sobre el <strong>perfil agregado</strong> del partido: se suman
            los instrumentos de todos sus concejales por tema y se mide qué tan repartida está
            esa agenda conjunta.</p>
@@ -52,7 +52,7 @@ export function renderShannonPartido(root, ctx) {
     y: partidos.map((p) => p.nombre),
     type: "bar",
     orientation: "h",
-    marker: { color: "#3b3bb3" },
+    marker: { color: "#4f46e5" },
     hovertemplate: "%{y}<br>H bloque=%{x:.3f}<extra></extra>",
   }], {
     title: { text: "Shannon del bloque por partido", font: { size: 14 } },

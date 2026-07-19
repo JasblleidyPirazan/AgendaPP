@@ -42,7 +42,7 @@ export function renderShannon(root, ctx) {
     x: concejales.map((c) => c.shannon_norm),
     type: "histogram",
     nbinsx: 20,
-    marker: { color: "#3b3bb3" },
+    marker: { color: "#4f46e5" },
   }], {
     xaxis: { title: "H normalizado", range: [0, 1] },
     yaxis: { title: "Concejales" },

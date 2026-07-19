@@ -97,7 +97,7 @@ export function renderComparar(root, ctx) {
       type: "bar", orientation: "h",
       x: cd.map((f) => f.r.jaccProm),
       y: cd.map((f) => f.municipio),
-      marker: { color: cd.map((f) => f.r.jaccProm >= UMBRAL_JACCARD ? "#2ca02c" : "#d62728") },
+      marker: { color: cd.map((f) => f.r.jaccProm >= UMBRAL_JACCARD ? "#15803d" : "#dc2626") },
       hovertemplate: "%{y}<br>Jaccard prom=%{x:.3f}<extra></extra>",
     }], {
       xaxis: { title: "Jaccard pareado promedio", range: [0, 1] },
@@ -117,7 +117,7 @@ export function renderComparar(root, ctx) {
       y: mp.map((f) => f.r.hIndProm),
       text: mp.map((f) => f.municipio),
       textposition: "top center",
-      marker: { size: mp.map((f) => Math.min(40, 8 + f.r.nConcejales * 2)), color: mp.map((f) => f.r.jaccProm >= UMBRAL_JACCARD ? "#2ca02c" : "#d62728"), opacity: 0.7 },
+      marker: { size: mp.map((f) => Math.min(40, 8 + f.r.nConcejales * 2)), color: mp.map((f) => f.r.jaccProm >= UMBRAL_JACCARD ? "#15803d" : "#dc2626"), opacity: 0.7 },
       hovertemplate: "%{text}<br>Jaccard=%{x:.3f}<br>H indiv=%{y:.3f}<extra></extra>",
     }], {
       xaxis: { title: "Jaccard intra-partido (→ H1)", range: [-0.05, 1.05] },
@@ -158,7 +158,7 @@ function resumen(m) {
 
 function filaHTML(nombre, r, esTotal) {
   const vClass = r.h1 > r.h2 ? "tag-ok" : r.h2 > r.h1 ? "tag-bad" : "tag-neutral";
-  const estilo = esTotal ? ' style="font-weight:700;background:#f3f4fb"' : "";
+  const estilo = esTotal ? ' style="font-weight:700;background:var(--accent-soft)"' : "";
   const sinDatos = r.nConcejales === 0;
   return `<tr${estilo}>
     <td>${nombre}</td>

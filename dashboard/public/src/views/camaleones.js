@@ -110,7 +110,7 @@ export function renderCamaleones(root, ctx) {
       y: filasMun.map((f) => f.municipio),
       text: filasMun.map((f) => `${f.cam}/${f.total} (${f.pct.toFixed(0)}%)`),
       textposition: "auto",
-      marker: { color: "#7a3bb3" },
+      marker: { color: "#7c3aed" },
       hovertemplate: "%{y}<br>%{x} camaleones de %{customdata}<extra></extra>",
       customdata: filasMun.map((f) => f.total),
     }], {
