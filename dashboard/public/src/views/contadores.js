@@ -52,22 +52,35 @@ export function renderContadores(root, ctx) {
     pasaMun(r) && noAdmin(r)
   );
 
-  const clasifPorInst = new Map(); // id -> {mun, titulo, clases: Map(clase -> nFilas)}
+  const clasifPorInst = new Map(); // id -> {mun, clases: Map(clase -> {n, titulos:Map}), titulosNorm:Set}
+  const tituloNorm = (t) => low(t).replace(/\s+/g, " ");
   for (const r of filasBase) {
     const id = idDe(r);
     if (!clasifPorInst.has(id)) clasifPorInst.set(id, {
       id,
       mun: norm(r.municipio_origen) || norm(r.municipio) || "(sin municipio)",
-      titulo: norm(r.Titulo),
       clases: new Map(),
+      titulosNorm: new Set(),
     });
     const g = clasifPorInst.get(id);
     const c = claseDe(r);
-    g.clases.set(c, (g.clases.get(c) || 0) + 1);
-    if (!g.titulo && norm(r.Titulo)) g.titulo = norm(r.Titulo);
+    if (!g.clases.has(c)) g.clases.set(c, { n: 0, titulos: new Map() });
+    const gc = g.clases.get(c);
+    gc.n++;
+    const t = norm(r.Titulo);
+    if (t) {
+      const tn = tituloNorm(t);
+      g.titulosNorm.add(tn);
+      if (!gc.titulos.has(tn)) gc.titulos.set(tn, t);
+    }
   }
+  // Diagnostico por instrumento en conflicto:
+  //  - mismo titulo en todas las filas  -> clasificacion mixta del MISMO instrumento (unificar la clase)
+  //  - titulos distintos entre clases   -> posible COLISION: dos instrumentos diferentes (p. ej. un
+  //    Acuerdo y un Proyecto de Acuerdo con el mismo numero) comparten el Identificador
   const inconsistentes = Array.from(clasifPorInst.values())
     .filter((g) => g.clases.size > 1)
+    .map((g) => ({ ...g, colision: g.titulosNorm.size > 1 }))
     .sort((a, b) => a.mun.localeCompare(b.mun, "es") || a.id.localeCompare(b.id, "es"));
 
   // Filas en alcance (con todos los filtros, incluida la clasificacion)
@@ -126,6 +139,19 @@ export function renderContadores(root, ctx) {
   const inconEnAlcance = inconsistentes.filter((g) => totalGlobal.has(g.id));
   const MAX_INCON = 200;
 
+  const nColision = inconsistentes.filter((g) => g.colision).length;
+  const nMixta = inconsistentes.length - nColision;
+
+  const celdaClases = (g) => Array.from(g.clases.entries()).map(([c, e]) => {
+    const ts = Array.from(e.titulos.values());
+    const t = ts.length ? ` — «${esc(ts.map((x) => x.slice(0, 60)).join("» / «"))}»` : "";
+    return `<div><strong>${esc(c)}</strong> (${e.n} fila${e.n === 1 ? "" : "s"})${t}</div>`;
+  }).join("");
+
+  const celdaDiag = (g) => g.colision
+    ? '<span class="tag-bad">Posible colisión de Identificador</span><br><span style="font-size:.8rem;color:var(--muted)">Títulos distintos: parecen dos instrumentos diferentes con el mismo número. Renumerar o diferenciar el Identificador.</span>'
+    : '<span class="tag-neutral" style="color:var(--warn)">Clasificación mixta</span><br><span style="font-size:.8rem;color:var(--muted)">Mismo título: unificar la "Clasificación legal" de todas sus filas.</span>';
+
   const panelConsistencia = inconsistentes.length === 0 ? `
     <div class="aviso aviso-ok">
       <strong>✓ Clasificación consistente.</strong>
@@ -134,30 +160,30 @@ export function renderContadores(root, ctx) {
     </div>
   ` : `
     <div class="aviso aviso-warn">
-      <strong>⚠ Clasificación legal inconsistente en ${inconsistentes.length} instrumento(s).</strong>
-      Tienen filas registradas con <em>más de una</em> "Clasificación legal" (p. ej. unas filas como
-      <em>Acuerdo</em> y otras como <em>Proyecto de Acuerdo</em>), así que se cuentan una vez en
-      <em>cada</em> clasificación donde aparecen.
+      <strong>⚠ ${inconsistentes.length} identificador(es) aparecen con más de una "Clasificación legal".</strong>
+      Cada uno se cuenta una vez en <em>cada</em> clasificación donde aparece, pero una sola vez en el
+      total de únicos.
       ${dobles > 0 ? `
         Por eso la suma por clasificación (<strong>${sumaClases}</strong>) supera el total de
-        instrumentos únicos (<strong>${totalGlobal.size}</strong>) en <strong>${dobles}</strong>:
-        no es un error de conteo, es un dato a corregir en el Sheet del municipio.
-      ` : `
-        Con el filtro de clasificación actual no se produce doble conteo, pero conviene
-        corregir la clasificación en el Sheet del municipio.
-      `}
+        instrumentos únicos (<strong>${totalGlobal.size}</strong>) en <strong>${dobles}</strong>.
+      ` : ""}
+      Hay dos causas posibles y el detalle las separa:
+      <strong>${nColision}</strong> con títulos distintos entre clasificaciones
+      (posible <em>colisión</em>: un Acuerdo y un Proyecto de Acuerdo diferentes que comparten número de
+      Identificador y el sistema fusiona como uno solo) y
+      <strong>${nMixta}</strong> con el mismo título (clasificación a unificar en el Sheet).
       <details>
-        <summary>Ver instrumentos con clasificación inconsistente (${inconEnAlcance.length} en alcance)</summary>
+        <summary>Ver detalle (${inconEnAlcance.length} en alcance)</summary>
         <div style="overflow-x:auto;margin-top:.5rem">
           <table>
-            <thead><tr><th>ID</th><th>Municipio</th><th>Título</th><th>Clasificaciones (filas)</th></tr></thead>
+            <thead><tr><th>ID</th><th>Municipio</th><th>Clasificaciones, filas y títulos</th><th>Diagnóstico</th></tr></thead>
             <tbody>
               ${inconEnAlcance.slice(0, MAX_INCON).map((g) => `
                 <tr>
                   <td><code>${esc(g.id)}</code></td>
                   <td>${esc(g.mun)}</td>
-                  <td>${esc((g.titulo || "—").slice(0, 80))}${g.titulo && g.titulo.length > 80 ? "…" : ""}</td>
-                  <td>${Array.from(g.clases.entries()).map(([c, n]) => `${esc(c)} (${n})`).join(" · ")}</td>
+                  <td>${celdaClases(g)}</td>
+                  <td>${celdaDiag(g)}</td>
                 </tr>
               `).join("")}
               ${inconEnAlcance.length > MAX_INCON ? `
