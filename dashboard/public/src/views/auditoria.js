@@ -3,7 +3,9 @@ import { claveNorm } from "/src/metrics.js";
 export function renderAuditoria(root, ctx) {
   if (!ctx.raw) {
     root.innerHTML = `<p class="empty">
-      Configura <code>appsScriptUrl</code> en <code>/config.json</code> para habilitar la auditoría con datos crudos.
+      La auditoría necesita la data cruda del endpoint Apps Script y no cargó.
+      Usa el botón <strong>↻ Reintentar</strong> del aviso de arriba (o <strong>↻ Recalcular</strong>);
+      si persiste, verifica <code>appsScriptUrl</code> en <code>/config.json</code>.
     </p>`;
     return;
   }
