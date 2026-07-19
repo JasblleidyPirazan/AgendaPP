@@ -200,7 +200,7 @@ export function renderInstrumentos(root, ctx) {
       orientation: "h",
       x: pares.map((p) => p[1]),
       y: pares.map((p) => p[0]),
-      marker: { color: pares.map((p) => p[0] === "(vacío)" ? "#d62728" : "#3b3bb3") },
+      marker: { color: pares.map((p) => p[0] === "(vacío)" ? "#dc2626" : "#4f46e5") },
     }], {
       title: { text: titulo, font: { size: 14 } },
       margin: { l: 200, r: 20, t: 40, b: 40 },

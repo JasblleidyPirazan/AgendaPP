@@ -151,6 +151,90 @@ export function renderAuditoria(root, ctx) {
       `}
   `;
 
+  // --- Instrumentos con "Clasificacion legal" inconsistente entre filas ---
+  // Un instrumento (id_instrumento) deberia tener UNA sola clasificacion legal.
+  // Si unas filas lo registran como "Acuerdo" y otras como "Proyecto de
+  // Acuerdo", los contadores por clasificacion lo cuentan en ambas y la suma
+  // por clase supera el total de instrumentos unicos.
+  const clasifPorInst = new Map(); // id -> {mun, titulo, clases: Map(clase -> nFilas)}
+  for (const r of instrumentos) {
+    if (!norm(r.Identificador)) continue;
+    if (norm(r["Incluir en analisis"]).toLowerCase() === "no") continue;
+    const dane = norm(r["Codigo DANE"]).padStart(5, "0");
+    const id = norm(r.id_instrumento) || `${dane}-${norm(r.Identificador)}`;
+    if (!clasifPorInst.has(id)) clasifPorInst.set(id, {
+      id,
+      mun: norm(r.municipio_origen) || norm(r.municipio) || "(sin municipio)",
+      titulo: norm(r.Titulo),
+      clases: new Map(),
+    });
+    const g = clasifPorInst.get(id);
+    const clase = norm(r["Clasificacion legal"]) || "(sin clasif.)";
+    g.clases.set(clase, (g.clases.get(clase) || 0) + 1);
+    if (!g.titulo && norm(r.Titulo)) g.titulo = norm(r.Titulo);
+  }
+  const clasifInconsistentes = Array.from(clasifPorInst.values())
+    .filter((g) => g.clases.size > 1)
+    .sort((a, b) => a.mun.localeCompare(b.mun, "es") || a.id.localeCompare(b.id, "es"));
+
+  const inconPorMun = new Map();
+  for (const g of clasifInconsistentes) {
+    inconPorMun.set(g.mun, (inconPorMun.get(g.mun) || 0) + 1);
+  }
+  const resumenIncon = Array.from(inconPorMun.entries())
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "es"));
+
+  const MAX_INCON = 300;
+  const seccionClasif = `
+    <h3 style="margin-top:2rem">Instrumentos con Clasificación legal inconsistente (${clasifInconsistentes.length})</h3>
+    <p style="color:var(--muted);font-size:0.9rem">
+      Instrumentos únicos incluidos cuyas filas registran <strong>más de una</strong> "Clasificación legal"
+      (p. ej. <em>Acuerdo</em> en unas filas y <em>Proyecto de Acuerdo</em> en otras).
+      En los contadores por clasificación se cuentan en <strong>cada</strong> clase donde aparecen,
+      por lo que la suma por clasificación supera el total de instrumentos únicos.
+      Hay que unificar la clasificación en el Sheet del municipio (todas las filas del mismo
+      instrumento deben tener la misma). La clasificación en <strong>negrilla</strong> es la más frecuente.
+    </p>
+    ${clasifInconsistentes.length === 0
+      ? '<p class="empty">Cada instrumento tiene una única clasificación legal ✔</p>'
+      : `
+        <table style="max-width:480px">
+          <thead><tr><th>Municipio</th><th>Instrumentos con clasificación mixta</th></tr></thead>
+          <tbody>
+            ${resumenIncon.map(([mun, n]) => `
+              <tr><td><strong>${mun}</strong></td><td style="text-align:center" class="tag-bad">${n}</td></tr>
+            `).join("")}
+          </tbody>
+        </table>
+
+        <div style="overflow-x:auto;margin-top:1rem">
+          <table>
+            <thead><tr><th>ID</th><th>Municipio</th><th>Título</th><th>Clasificaciones (filas)</th></tr></thead>
+            <tbody>
+              ${clasifInconsistentes.slice(0, MAX_INCON).map((g) => {
+                const orden = Array.from(g.clases.entries()).sort((a, b) => b[1] - a[1]);
+                const [ganadora, ...resto] = orden;
+                const clasesHTML = [`<strong>${ganadora[0]}</strong> (${ganadora[1]})`]
+                  .concat(resto.map(([c, n]) => `${c} (${n})`)).join(" · ");
+                return `
+                  <tr>
+                    <td><code>${g.id}</code></td>
+                    <td>${g.mun}</td>
+                    <td>${(g.titulo || "—").slice(0, 80)}${g.titulo.length > 80 ? "…" : ""}</td>
+                    <td>${clasesHTML}</td>
+                  </tr>`;
+              }).join("")}
+              ${clasifInconsistentes.length > MAX_INCON
+                ? `<tr><td colspan="4" style="text-align:center;color:var(--muted);font-style:italic">
+                    … mostrando primeros ${MAX_INCON} de ${clasifInconsistentes.length}.
+                  </td></tr>`
+                : ""}
+            </tbody>
+          </table>
+        </div>
+      `}
+  `;
+
   // --- Variantes de escritura unificables (Partido / Sector / Tematica) ---
   // El pipeline las une automaticamente al calcular (canonizacion), pero aqui
   // se delatan para corregirlas en la fuente y que no reaparezcan.
@@ -212,6 +296,8 @@ export function renderAuditoria(root, ctx) {
     <p>Datos crudos del endpoint, sin transformar. Util para detectar correcciones necesarias en los Sheets.</p>
 
     ${diagMunicipios}
+
+    ${seccionClasif}
 
     ${seccionVariantes}
 
