@@ -156,7 +156,8 @@ export function renderAuditoria(root, ctx) {
   // Si unas filas lo registran como "Acuerdo" y otras como "Proyecto de
   // Acuerdo", los contadores por clasificacion lo cuentan en ambas y la suma
   // por clase supera el total de instrumentos unicos.
-  const clasifPorInst = new Map(); // id -> {mun, titulo, clases: Map(clase -> nFilas)}
+  const clasifPorInst = new Map(); // id -> {mun, clases: Map(clase -> {n, titulos:Map}), titulosNorm:Set}
+  const tituloNorm = (t) => norm(t).toLowerCase().replace(/\s+/g, " ");
   for (const r of instrumentos) {
     if (!norm(r.Identificador)) continue;
     if (norm(r["Incluir en analisis"]).toLowerCase() === "no") continue;
@@ -165,17 +166,29 @@ export function renderAuditoria(root, ctx) {
     if (!clasifPorInst.has(id)) clasifPorInst.set(id, {
       id,
       mun: norm(r.municipio_origen) || norm(r.municipio) || "(sin municipio)",
-      titulo: norm(r.Titulo),
       clases: new Map(),
+      titulosNorm: new Set(),
     });
     const g = clasifPorInst.get(id);
     const clase = norm(r["Clasificacion legal"]) || "(sin clasif.)";
-    g.clases.set(clase, (g.clases.get(clase) || 0) + 1);
-    if (!g.titulo && norm(r.Titulo)) g.titulo = norm(r.Titulo);
+    if (!g.clases.has(clase)) g.clases.set(clase, { n: 0, titulos: new Map() });
+    const gc = g.clases.get(clase);
+    gc.n++;
+    const t = norm(r.Titulo);
+    if (t) {
+      const tn = tituloNorm(t);
+      g.titulosNorm.add(tn);
+      if (!gc.titulos.has(tn)) gc.titulos.set(tn, t);
+    }
   }
+  // Dos diagnosticos distintos:
+  //  - mismo titulo en todas las filas -> clasificacion mixta del mismo instrumento (unificar clase)
+  //  - titulos distintos entre clases  -> posible colision de Identificador: dos instrumentos
+  //    diferentes (p. ej. Acuerdo 002-2015 y Proyecto de Acuerdo 002-2015) fusionados en un id
   const clasifInconsistentes = Array.from(clasifPorInst.values())
     .filter((g) => g.clases.size > 1)
-    .sort((a, b) => a.mun.localeCompare(b.mun, "es") || a.id.localeCompare(b.id, "es"));
+    .map((g) => ({ ...g, colision: g.titulosNorm.size > 1 }))
+    .sort((a, b) => (b.colision ? 1 : 0) - (a.colision ? 1 : 0) || a.mun.localeCompare(b.mun, "es") || a.id.localeCompare(b.id, "es"));
 
   const inconPorMun = new Map();
   for (const g of clasifInconsistentes) {
@@ -185,21 +198,42 @@ export function renderAuditoria(root, ctx) {
     .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "es"));
 
   const MAX_INCON = 300;
+  const nColision = clasifInconsistentes.filter((g) => g.colision).length;
+  const nMixta = clasifInconsistentes.length - nColision;
+
+  const celdaClasesAud = (g) => Array.from(g.clases.entries())
+    .sort((a, b) => b[1].n - a[1].n)
+    .map(([c, e]) => {
+      const ts = Array.from(e.titulos.values());
+      const t = ts.length ? ` — «${ts.map((x) => x.slice(0, 70)).join("» / «")}»` : "";
+      return `<div><strong>${c}</strong> (${e.n} fila${e.n === 1 ? "" : "s"})${t}</div>`;
+    }).join("");
+
   const seccionClasif = `
-    <h3 style="margin-top:2rem">Instrumentos con Clasificación legal inconsistente (${clasifInconsistentes.length})</h3>
+    <h3 style="margin-top:2rem">Identificadores con más de una Clasificación legal (${clasifInconsistentes.length})</h3>
     <p style="color:var(--muted);font-size:0.9rem">
-      Instrumentos únicos incluidos cuyas filas registran <strong>más de una</strong> "Clasificación legal"
-      (p. ej. <em>Acuerdo</em> en unas filas y <em>Proyecto de Acuerdo</em> en otras).
-      En los contadores por clasificación se cuentan en <strong>cada</strong> clase donde aparecen,
-      por lo que la suma por clasificación supera el total de instrumentos únicos.
-      Hay que unificar la clasificación en el Sheet del municipio (todas las filas del mismo
-      instrumento deben tener la misma). La clasificación en <strong>negrilla</strong> es la más frecuente.
+      El sistema identifica cada instrumento como <code>DANE-Identificador</code>. Si ese identificador
+      aparece con <strong>más de una</strong> "Clasificación legal", hay dos causas posibles:
+    </p>
+    <ul style="color:var(--muted);font-size:0.9rem;margin-top:0">
+      <li><strong class="tag-bad">Posible colisión (${nColision})</strong>: los títulos difieren entre
+        clasificaciones → probablemente son <em>dos instrumentos distintos</em> (p. ej. un
+        <em>Acuerdo 002-2015</em> y un <em>Proyecto de Acuerdo 002-2015</em>) que comparten número y el
+        sistema fusiona en uno. Corrección: diferenciar el <strong>Identificador</strong> en el Sheet
+        (p. ej. <code>PA-002-2015</code> vs <code>A-002-2015</code>) para que cuenten por separado.</li>
+      <li><strong style="color:var(--warn)">Clasificación mixta (${nMixta})</strong>: mismo título en
+        todas las filas → es <em>el mismo instrumento</em> con la clasificación mal digitada en algunas
+        filas. Corrección: unificar la "Clasificación legal" de todas sus filas.</li>
+    </ul>
+    <p style="color:var(--muted);font-size:0.9rem">
+      En ambos casos, en los contadores por clasificación el identificador se cuenta en <strong>cada</strong>
+      clase donde aparece, por eso la suma por clasificación supera el total de instrumentos únicos.
     </p>
     ${clasifInconsistentes.length === 0
       ? '<p class="empty">Cada instrumento tiene una única clasificación legal ✔</p>'
       : `
         <table style="max-width:480px">
-          <thead><tr><th>Municipio</th><th>Instrumentos con clasificación mixta</th></tr></thead>
+          <thead><tr><th>Municipio</th><th>Identificadores en conflicto</th></tr></thead>
           <tbody>
             ${resumenIncon.map(([mun, n]) => `
               <tr><td><strong>${mun}</strong></td><td style="text-align:center" class="tag-bad">${n}</td></tr>
@@ -209,21 +243,18 @@ export function renderAuditoria(root, ctx) {
 
         <div style="overflow-x:auto;margin-top:1rem">
           <table>
-            <thead><tr><th>ID</th><th>Municipio</th><th>Título</th><th>Clasificaciones (filas)</th></tr></thead>
+            <thead><tr><th>ID</th><th>Municipio</th><th>Clasificaciones, filas y títulos</th><th>Diagnóstico</th></tr></thead>
             <tbody>
-              ${clasifInconsistentes.slice(0, MAX_INCON).map((g) => {
-                const orden = Array.from(g.clases.entries()).sort((a, b) => b[1] - a[1]);
-                const [ganadora, ...resto] = orden;
-                const clasesHTML = [`<strong>${ganadora[0]}</strong> (${ganadora[1]})`]
-                  .concat(resto.map(([c, n]) => `${c} (${n})`)).join(" · ");
-                return `
-                  <tr>
-                    <td><code>${g.id}</code></td>
-                    <td>${g.mun}</td>
-                    <td>${(g.titulo || "—").slice(0, 80)}${g.titulo.length > 80 ? "…" : ""}</td>
-                    <td>${clasesHTML}</td>
-                  </tr>`;
-              }).join("")}
+              ${clasifInconsistentes.slice(0, MAX_INCON).map((g) => `
+                <tr>
+                  <td><code>${g.id}</code></td>
+                  <td>${g.mun}</td>
+                  <td>${celdaClasesAud(g)}</td>
+                  <td>${g.colision
+                    ? '<span class="tag-bad">Posible colisión de Identificador</span>'
+                    : '<span style="color:var(--warn);font-weight:600">Clasificación mixta</span>'}</td>
+                </tr>
+              `).join("")}
               ${clasifInconsistentes.length > MAX_INCON
                 ? `<tr><td colspan="4" style="text-align:center;color:var(--muted);font-style:italic">
                     … mostrando primeros ${MAX_INCON} de ${clasifInconsistentes.length}.
